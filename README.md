@@ -1,5 +1,7 @@
 # Agritech Answers — Système de recommandation de cultures
 
+[![CI](https://github.com/to-haladjian/OC_projet_DS_12/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/to-haladjian/OC_projet_DS_12/actions/workflows/ci.yml)
+
 Projet OpenClassrooms : application web permettant à un agriculteur (1) d'estimer le
 rendement d'une culture selon les conditions de sa parcelle et (2) d'obtenir un classement
 des cultures les plus productives pour ces mêmes conditions.
@@ -325,6 +327,31 @@ Compose, `http://api:8000`).
 | Dépendances de l'interface | [`app/requirements.txt`](app/requirements.txt) |
 | Image de l'interface et démo locale | [`app/Dockerfile`](app/Dockerfile), [`docker-compose.yml`](docker-compose.yml) |
 | Tests | `tests/test_api_client.py` (client, API simulée), `tests/test_app.py` (interface contre la vraie API) |
+
+## Intégration continue
+
+Le workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) s'exécute **à chaque
+push sur `dev`**, et se lance aussi à la demande depuis l'onglet Actions. Il ne fait qu'une
+chose : jouer toute la suite de tests.
+
+```bash
+pytest -q        # en local, le même contrôle
+```
+
+Deux choix méritent une explication.
+
+**Python 3.13 et des versions épinglées.** Les deux modèles servis sont des *pickles* :
+ils ne se rechargent pas de façon fiable sous une version de scikit-learn autre que celle
+qui les a produits. `api/requirements.txt` épingle donc scikit-learn 1.9.0, et le workflow
+fixe Python 3.13. Sans cela, l'installation d'une version plus récente ferait échouer les
+quarante tests sur une erreur de désérialisation difficile à lire.
+
+**Un jeu de dépendances réduit.** La CI n'installe ni MLflow, ni matplotlib, ni Jupyter :
+la suite de tests n'en a pas besoin, et les écarter raccourcit l'installation. Vérifié dans
+un environnement neuf — les 40 tests passent avec les deux fichiers de requirements, plus
+`pytest` et `httpx`.
+
+Le déploiement n'est pas encore traité : ce workflow s'arrête aux tests.
 
 ## Structure
 

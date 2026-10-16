@@ -1,0 +1,38 @@
+name: CI
+
+# Déclenchement sur la branche de développement uniquement. Le déploiement sera traité
+# séparément : ce workflow ne fait que vérifier que la suite de tests passe.
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+jobs:
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Python 3.13 : les deux modèles sont des pickles produits sous cette version.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: |
+            api/requirements.txt
+            app/requirements.txt
+
+      # Les deux fichiers de requirements sont épinglés, scikit-learn compris : un
+      # pickle ne se recharge pas de façon fiable sous une autre version que celle
+      # qui l'a produit. On n'installe ni MLflow, ni matplotlib, ni Jupyter — la
+      # suite de tests n'en a pas besoin.
+      - name: Installer les dépendances
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r api/requirements.txt -r app/requirements.txt pytest httpx
+
+      - name: Tests
+        run: pytest -q
