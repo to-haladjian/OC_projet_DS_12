@@ -36,6 +36,10 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Arborescence plate : api/, app/ et src/ sont a la racine et ne sont pas installes.
+# Sans cette ligne, `pytest` echoue a importer `api` alors que `python -m pytest`
+# fonctionne, le second ajoutant le repertoire courant a sys.path et le premier pas.
+pythonpath = ["."]
 filterwarnings = [
     # Starlette's TestClient announces its move away from httpx; harmless here.
     "ignore::DeprecationWarning:fastapi.testclient",
