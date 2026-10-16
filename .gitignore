@@ -1,0 +1,31 @@
+# Données
+data/raw/
+data/processed/*.csv
+
+# Matériel de référence, hors périmètre du rendu : projets tiers consultés pendant
+# l'analyse. 128 Mo, et ce n'est pas notre travail — rien de tout cela ne doit partir
+# dans un dépôt rendu comme travail personnel.
+TO_DELETE/
+
+# Énoncé de la mission, archivé depuis la plateforme : support de cours, pas un livrable.
+*.mhtml
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# MLflow : base de suivi locale et artefacts. Les runs se régénèrent en rejouant
+# les notebooks 07 à 10.
+mlruns/
+mlartifacts/
+mlflow.db
+
+# OS / éditeurs
+.DS_Store
+*:Zone.Identifier
+.vscode/
