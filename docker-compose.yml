@@ -1,0 +1,32 @@
+# Local demo: the API and the interface together.
+#   docker compose up --build     -> interface on http://localhost:8501, API on http://localhost:8000/docs
+#   docker compose down
+# No secret is needed: both services only read what their images contain.
+
+services:
+  api:
+    build: .
+    image: agritech-api
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      start_interval: 2s
+      retries: 3
+
+  app:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    image: agritech-app
+    ports:
+      - "8501:8501"
+    environment:
+      # Inside the Compose network, the API answers under its service name.
+      API_URL: http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy

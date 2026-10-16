@@ -1,0 +1,21 @@
+# The API image only needs src/, api/ and models/ (see Dockerfile).
+.git
+.venv
+venv
+__pycache__
+*.py[cod]
+.pytest_cache
+.ipynb_checkpoints
+.vscode
+data/
+notebooks/
+reports/
+tests/
+scripts/
+mlruns/
+mlartifacts/
+mlflow.db
+TO_DELETE/
+*.mhtml
+*.ansi
+*:Zone.Identifier
