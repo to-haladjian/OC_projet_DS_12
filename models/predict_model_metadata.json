@@ -1,0 +1,33 @@
+{
+  "service": "predict",
+  "modele": "LinearRegression",
+  "variables": [
+    "Rainfall_mm",
+    "Temperature_Celsius",
+    "Fertilizer_Used",
+    "Irrigation_Used"
+  ],
+  "cible": "Yield_tons_per_hectare",
+  "unite": "t/ha",
+  "seed": 42,
+  "n_apprentissage": 799815,
+  "n_test": 199954,
+  "scores": {
+    "test_rmse": 0.4992678452943274,
+    "test_mae": 0.39833799309037643,
+    "test_r2": 0.9132348209075523,
+    "train_rmse": 0.5003304830676141,
+    "train_mae": 0.39929082083498796,
+    "train_r2": 0.9128907751423546
+  },
+  "sigma_bruit": 0.4992678342797545,
+  "r2_structure_residuelle": -0.0003167628712941184,
+  "coefficients": {
+    "Rainfall_mm": 0.004993334915196278,
+    "Temperature_Celsius": 0.019898574084982468,
+    "Fertilizer_Used": 1.5010440916321932,
+    "Irrigation_Used": 1.1992197140496625
+  },
+  "constante": 0.006773212332145562,
+  "avertissement": "L'estimation decrit les conditions et les pratiques de la parcelle, pas la culture semee : dans ce jeu de donnees la culture n'a aucun effet mesurable sur le rendement. La reponse du service doit le signaler."
+}

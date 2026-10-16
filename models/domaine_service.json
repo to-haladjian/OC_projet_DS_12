@@ -1,0 +1,161 @@
+{
+ "scikit_learn": "1.9.0",
+ "predict": {
+  "source": "min / max du jeu simule d'entrainement",
+  "bornes": {
+   "Rainfall_mm": {
+    "min": 100.00089622522204,
+    "max": 999.998098221668
+   },
+   "Temperature_Celsius": {
+    "min": 15.000034141430271,
+    "max": 39.99999662316004
+   }
+  }
+ },
+ "recommend": {
+  "source": "quantiles 5 % / 95 % par culture FAO, annee de test exclue",
+  "bornes": {
+   "Cassava": {
+    "temperature_c": {
+     "min": 16.916,
+     "max": 27.952
+    },
+    "pluie_mm": {
+     "min": 322.0,
+     "max": 2928.0
+    },
+    "pesticides_t": {
+     "min": 1.596,
+     "max": 61336.99999999999
+    }
+   },
+   "Maize": {
+    "temperature_c": {
+     "min": 7.848000000000001,
+     "max": 27.79
+    },
+    "pluie_mm": {
+     "min": 111.0,
+     "max": 2666.0
+    },
+    "pesticides_t": {
+     "min": 5.0,
+     "max": 65425.946
+    }
+   },
+   "Plantains and others": {
+    "temperature_c": {
+     "min": 16.698999999999998,
+     "max": 27.6205
+    },
+    "pluie_mm": {
+     "min": 1146.0,
+     "max": 2926.0
+    },
+    "pesticides_t": {
+     "min": 10.512000000000002,
+     "max": 15994.253999999995
+    }
+   },
+   "Potatoes": {
+    "temperature_c": {
+     "min": 6.1475,
+     "max": 27.611785714285716
+    },
+    "pluie_mm": {
+     "min": 92.0,
+     "max": 2348.0
+    },
+    "pesticides_t": {
+     "min": 4.0,
+     "max": 65335.630000000005
+    }
+   },
+   "Rice, paddy": {
+    "temperature_c": {
+     "min": 9.24,
+     "max": 27.79
+    },
+    "pluie_mm": {
+     "min": 206.0,
+     "max": 2875.0
+    },
+    "pesticides_t": {
+     "min": 2.890500000000002,
+     "max": 79821.18
+    }
+   },
+   "Sorghum": {
+    "temperature_c": {
+     "min": 8.978,
+     "max": 27.81
+    },
+    "pluie_mm": {
+     "min": 125.0,
+     "max": 2592.0
+    },
+    "pesticides_t": {
+     "min": 17.0,
+     "max": 81418.37199999999
+    }
+   },
+   "Soybeans": {
+    "temperature_c": {
+     "min": 7.891,
+     "max": 27.287999999999997
+    },
+    "pluie_mm": {
+     "min": 252.0,
+     "max": 2391.0
+    },
+    "pesticides_t": {
+     "min": 15.955000000000002,
+     "max": 86221.65149999985
+    }
+   },
+   "Sweet potatoes": {
+    "temperature_c": {
+     "min": 11.806,
+     "max": 27.79
+    },
+    "pluie_mm": {
+     "min": 228.0,
+     "max": 2702.0
+    },
+    "pesticides_t": {
+     "min": 2.1,
+     "max": 75460.83099999987
+    }
+   },
+   "Wheat": {
+    "temperature_c": {
+     "min": 5.882000000000001,
+     "max": 27.615
+    },
+    "pluie_mm": {
+     "min": 89.0,
+     "max": 2044.0
+    },
+    "pesticides_t": {
+     "min": 17.0,
+     "max": 77603.79999999989
+    }
+   },
+   "Yams": {
+    "temperature_c": {
+     "min": 16.186500000000002,
+     "max": 28.0605
+    },
+    "pluie_mm": {
+     "min": 322.0,
+     "max": 3142.0
+    },
+    "pesticides_t": {
+     "min": 1.0450000000000004,
+     "max": 64302.28049999996
+    }
+   }
+  }
+ }
+}
