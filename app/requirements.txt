@@ -1,0 +1,4 @@
+# Interface dependencies only (step 4): no model, no scikit-learn — the interface only
+# talks to the API. Altair and pandas come with Streamlit.
+streamlit==1.66.0
+requests==2.34.2
