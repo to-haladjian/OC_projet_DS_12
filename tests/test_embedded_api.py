@@ -31,16 +31,17 @@ print(json.dumps({
 }))
 """
 
-#: The whole interface, driven headless, exactly as Streamlit Cloud will run it: no
-#: API_URL anywhere, both screens served by the API started inside the process.
+#: The whole interface, driven headless, exactly as Streamlit Cloud will run it: the
+#: root entrypoint, no API_URL anywhere, both screens served by the embedded API. Note
+#: that nothing here puts `app/` on the path — `streamlit_app.py` has to do that itself,
+#: as it must on the host.
 PROGRAM_INTERFACE = """
-import json, sys
+import json
 from pathlib import Path
-sys.path.insert(0, "app")
 from streamlit.testing.v1 import AppTest
 
 # AppTest resolves a relative path against its *caller*, which here is a -c program.
-app = AppTest.from_file(str(Path.cwd() / "app" / "app.py"), default_timeout=180)
+app = AppTest.from_file(str(Path.cwd() / "streamlit_app.py"), default_timeout=180)
 app.run()
 assert not app.exception, app.exception
 app.button[0].click().run()
@@ -143,3 +144,30 @@ def test_the_interface_works_end_to_end_without_any_api_url():
     assert resultat["rendement"].endswith("t/ha")
     assert resultat["cultures"] == 4
     assert resultat["premiere"] == "Maïs"
+
+
+def test_the_root_requirements_declare_both_halves():
+    """Community Cloud reads this one file, so it has to pull in the API's half too.
+
+    A guard, not a formality: dropping `api/requirements.txt` from it would install the
+    interface alone and the embedded API would fail on `import uvicorn`, on the host and
+    nowhere else.
+    """
+    lignes = {l.strip() for l in (ROOT / "requirements.txt").read_text().splitlines()}
+    assert "-r app/requirements.txt" in lignes
+    assert "-r api/requirements.txt" in lignes
+
+
+def test_nothing_at_the_root_outranks_the_requirements_file():
+    """Community Cloud's order is uv.lock, Pipfile, environment.yml, then requirements.
+
+    `uv lock` writes a lock file at the root, and committing it would silently hand the
+    deploy a resolution made from pyproject.toml — which does not list streamlit among
+    its default dependencies. The failure would appear only on the host.
+    """
+    prioritaires = [f for f in ("uv.lock", "Pipfile", "environment.yml", "environment.yaml")
+                    if (ROOT / f).exists()]
+    assert prioritaires == [], (
+        f"{prioritaires} passe(nt) avant requirements.txt sur Streamlit Cloud ; "
+        "ne pas versionner ce fichier, ou déclarer les dépendances dedans."
+    )

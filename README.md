@@ -337,7 +337,7 @@ push sur `dev`**, et se lance aussi à la demande depuis l'onglet Actions.
 ```mermaid
 flowchart LR
     push["push sur dev"] --> tests
-    tests["Tests<br/>54 tests, pytest"] -->|succès| image
+    tests["Tests<br/>56 tests, pytest"] -->|succès| image
     image["Build de l'image<br/>docker build → /health"] -->|succès| publication
     publication["Déploiement<br/>GHCR, étiquetée par commit"]
     tests -. échec .-> alerte
@@ -393,19 +393,38 @@ aucune logique ML, et aucune ligne n'est dupliquée.
 
 **Mettre l'interface en ligne**
 
-1. Sur [share.streamlit.io](https://share.streamlit.io), créer une app depuis le dépôt,
-   branche `dev`, fichier principal **`app/app.py`**.
-2. Dans *Advanced settings → Secrets* :
+Sur [share.streamlit.io](https://share.streamlit.io), *Create app* → *Deploy a public app
+from GitHub*, puis :
 
-   ```toml
-   API_EMBEDDED = "1"
-   ```
+| Champ | Valeur |
+|---|---|
+| Repository | `to-haladjian/OC_projet_DS_12` |
+| Branch | `dev` |
+| Main file path | **`streamlit_app.py`** (à la racine, pas `app/app.py`) |
+| *Advanced* → Python version | **3.13** |
+| *Advanced* → Secrets | `API_EMBEDDED = "1"` |
 
 Streamlit promeut ses secrets de type chaîne en variables d'environnement, et
-`app/api_client.py` lit précisément celle-ci : rien d'autre à brancher. Le fichier
-[`requirements.txt`](requirements.txt) à la racine n'existe que pour Streamlit Cloud, qui
-cherche les dépendances à cet endroit ; il renvoie vers les deux listes existantes
-plutôt que d'en recopier une ligne.
+`app/api_client.py` lit précisément celle-ci : rien d'autre à brancher.
+
+**Deux pièges, et pourquoi le point d'entrée est à la racine.** La documentation de
+Community Cloud est nette : l'hébergeur *« cherche le dossier du fichier d'entrée, puis
+la racine du dépôt »* et *« utilise le premier fichier de dépendances qu'il trouve »*.
+Avec `app/app.py` comme point d'entrée, il lirait donc `app/requirements.txt` —
+`streamlit` et `requests` seulement — et l'API embarquée mourrait sur `import uvicorn`.
+[`streamlit_app.py`](streamlit_app.py) n'existe que pour déplacer ce dossier vers la
+racine, où [`requirements.txt`](requirements.txt) déclare les deux moitiés. Cela permet à
+`app/requirements.txt` de rester ce que l'étape 4 annonce : les dépendances de la seule
+interface, sans modèle ni scikit-learn, telles que `app/Dockerfile` les installe.
+
+Second piège, du même ordre : l'ordre de priorité est `uv.lock`, `Pipfile`,
+`environment.yml`, puis `requirements.txt`. Versionner un `uv.lock` suffirait donc à
+détourner le déploiement vers une résolution faite depuis `pyproject.toml`, qui ne liste
+pas Streamlit. Un test le surveille.
+
+Enfin, la version de Python **ne peut plus être changée après le déploiement** sans
+supprimer l'app et la recréer : autant choisir 3.13 du premier coup, celle sous laquelle
+les modèles ont été sérialisés et celle que fixe la CI.
 
 ### Les choix qui méritent une explication
 
@@ -427,7 +446,7 @@ Python 3.13. Sans cela, l'installation d'une version plus récente ferait échou
 sur une erreur de désérialisation difficile à lire.
 
 **Un jeu de dépendances réduit.** La CI n'installe ni MLflow, ni matplotlib, ni Jupyter :
-la suite de tests n'en a pas besoin. Les 54 tests passent avec les deux fichiers de
+la suite de tests n'en a pas besoin. Les 56 tests passent avec les deux fichiers de
 requirements, plus `pytest` et `httpx`.
 
 **Des commandes `docker` en clair** plutôt que `login-action` et `build-push-action`. Le
@@ -469,6 +488,7 @@ api/               API FastAPI (étape 3) et ses dépendances
 app/               interface Streamlit (étape 4), son client HTTP et son Dockerfile
 tests/             tests de l'API et de l'interface
 scripts/           vérification des notebooks
+streamlit_app.py   point d'entrée pour Streamlit Cloud (exécute app/app.py)
 requirements.txt   dépendances à la racine, pour Streamlit Cloud (renvoie vers api/ et app/)
 Dockerfile         image de l'API
 docker-compose.yml API + interface en local
