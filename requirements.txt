@@ -1,5 +1,10 @@
-# Streamlit Community Cloud cherche un fichier de dependances a la racine du depot ;
-# c'est le seul role de ce fichier. Les dependances de l'interface restent declarees
-# dans app/requirements.txt, qui demeure la source unique : on s'y refere plutot que
-# de les recopier, pour qu'elles ne puissent pas diverger.
+# Streamlit Community Cloud looks for dependencies at the repository root; that is the
+# only purpose of this file. Nothing is copied: the two lists below remain the single
+# source, so they cannot drift apart.
+#
+# The interface pulls in the API's dependencies too, because Streamlit Cloud exposes a
+# single port: the API is therefore started inside the interface's process
+# (API_EMBEDDED=1, see app/embedded_api.py). It is the same FastAPI application,
+# queried over HTTP on the loopback interface.
 -r app/requirements.txt
+-r api/requirements.txt

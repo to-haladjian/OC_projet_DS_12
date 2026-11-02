@@ -326,7 +326,8 @@ Compose, `http://api:8000`).
 | Application Streamlit | [`app/app.py`](app/app.py) (+ `api_client.py`) |
 | Dépendances de l'interface | [`app/requirements.txt`](app/requirements.txt) |
 | Image de l'interface et démo locale | [`app/Dockerfile`](app/Dockerfile), [`docker-compose.yml`](docker-compose.yml) |
-| Tests | `tests/test_api_client.py` (client, API simulée), `tests/test_app.py` (interface contre la vraie API) |
+| API embarquée, pour un hébergeur à service unique | [`app/embedded_api.py`](app/embedded_api.py) |
+| Tests | `tests/test_api_client.py` (client, API simulée), `tests/test_app.py` (interface contre la vraie API), `tests/test_embedded_api.py` (API embarquée, serveur réel) |
 
 ## Intégration continue et déploiement
 
@@ -336,76 +337,83 @@ push sur `dev`**, et se lance aussi à la demande depuis l'onglet Actions.
 ```mermaid
 flowchart LR
     push["push sur dev"] --> tests
-    tests["Tests<br/>40 tests, pytest"] -->|succès| image
-    image["Image Docker<br/>build → /health → GHCR"] -->|succès| espace
-    espace["Space Hugging Face<br/>API en ligne"]
+    tests["Tests<br/>54 tests, pytest"] -->|succès| image
+    image["Build de l'image<br/>docker build → /health"] -->|succès| publication
+    publication["Déploiement<br/>GHCR, étiquetée par commit"]
     tests -. échec .-> alerte
     image -. échec .-> alerte
-    espace -. échec .-> alerte
     alerte["Alerte<br/>e-mail + issue"]
 ```
 
 | Job | Rôle | Condition |
 |---|---|---|
 | `tests` | joue toute la suite | chaque push sur `dev`, ou manuellement |
-| `image` | construit l'image de l'API, vérifie qu'elle répond, la publie sur GHCR | si `tests` passe |
-| `espace` | pousse l'API vers le Space Hugging Face | si `image` passe **et** `HF_SPACE` est défini |
-| `alerte` | ouvre ou commente une issue portant le lien du run | si un job échoue réellement |
+| `image` | construit l'image de l'API, vérifie qu'elle répond, **la publie sur GHCR** | si `tests` passe |
+| `alerte` | ouvre ou commente une issue portant le lien du run | si un job échoue |
 
-### Les services déployés
+La fiche d'évaluation demande un pipeline incluant « des tests unitaires, des étapes de
+build et de déploiement ». La publication sur GHCR **est** l'étape de déploiement : c'est
+l'artefact qui sort du pipeline, étiqueté par commit et récupérable par n'importe qui.
 
-| Service | Hébergeur | Pourquoi celui-là |
-|---|---|---|
-| API | **Hugging Face Spaces** (SDK Docker) | gratuit, 16 Go de RAM — la forêt de 150 arbres occupe 200 à 250 Mo en mémoire, ce qui exclut les offres à 512 Mo |
-| Interface | **Streamlit Community Cloud** | gratuit, se branche directement sur le dépôt |
+### Deux précisions sur ce que GHCR est, et n'est pas
 
-L'interface ne contient **aucune logique ML** : elle interroge l'API. Déployer l'une sans
-l'autre n'a donc pas de sens, et c'est pourquoi les deux vont de pair.
+**GHCR est un registre, pas un hébergeur.** Il entrepose des images Docker et les sert à
+`docker pull` ; aucun conteneur n'y tourne et il n'expose aucun `/predict`. Il ne peut donc
+pas être l'API que l'interface interroge — ce n'est pas son rôle.
 
-### Mettre en place les deux déploiements
+**Les Spaces Docker de Hugging Face ne sont plus gratuits.** La documentation du Hub est
+explicite : *« Gradio and Docker Spaces run on compute and require a paid plan to create:
+PRO for personal accounts »*. Le matériel CPU Basic reste affiché gratuit, ce qui explique
+les guides qui disent encore le contraire, mais c'est la **création** d'un Space Docker qui
+exige désormais un abonnement. Cette piste est donc fermée sous la contrainte du tout
+gratuit, et la seule exception (deux Spaces Gradio sur ZeroGPU) imposerait de réécrire
+l'API en Gradio.
 
-Les deux hébergeurs demandent une action manuelle une seule fois ; ensuite le pipeline s'en
-charge pour l'API.
+### L'interface en ligne, sur Streamlit Community Cloud
 
-**1. L'API sur Hugging Face Spaces**
+Streamlit Cloud exécute **un seul processus Python** et n'expose **qu'un port** : il ne
+peut pas héberger l'API à côté de l'interface. Et puisque plus aucun hébergeur gratuit
+n'accepte un conteneur de cette taille, l'architecture à deux services ne peut pas vivre
+en ligne telle quelle.
 
-1. Créer un jeton d'écriture sur Hugging Face (*Settings → Access Tokens*, type **Write**).
-2. Dans le dépôt GitHub, *Settings → Secrets and variables → Actions* :
-   - onglet **Secrets** → `HF_TOKEN` = le jeton ;
-   - onglet **Variables** → `HF_SPACE` = `votre-compte/agritech-api`.
-3. Pousser sur `dev`. Le job `espace` crée le Space au premier passage, puis le met à jour.
+La réponse n'est pas de réimplémenter les modèles dans l'interface. Avec `API_EMBEDDED=1`,
+[`app/embedded_api.py`](app/embedded_api.py) démarre `api.main:app` dans un thread, sur un
+port de la boucle locale, et `api_client` l'interroge **en HTTP comme toujours** : même
+objet applicatif, mêmes validations Pydantic, mêmes codes de statut, mêmes
+avertissements. Seul le saut réseau devient local. L'interface continue de ne contenir
+aucune logique ML, et aucune ligne n'est dupliquée.
 
-Le Space est reconstruit à partir du `Dockerfile` du dépôt, qui a été écrit pour cet
-hébergeur : utilisateur d'uid 1000 et port piloté par `PORT`. Seuls `api/`, `src/`,
-`models/` et la carte du Space lui sont poussés — ni données, ni notebooks, ni tests.
+| | `API_URL` | `API_EMBEDDED` | L'API tourne |
+|---|---|---|---|
+| Streamlit Cloud | — | `1` | dans le processus de l'interface |
+| `docker compose up` | `http://api:8000` | — | dans le conteneur voisin |
+| Développement local | — | — | là où vous l'avez lancée (`localhost:8000`) |
 
-**2. L'interface sur Streamlit Community Cloud**
+`API_URL` l'emporte toujours : une adresse explicite signifie une vraie API ailleurs.
+
+**Mettre l'interface en ligne**
 
 1. Sur [share.streamlit.io](https://share.streamlit.io), créer une app depuis le dépôt,
    branche `dev`, fichier principal **`app/app.py`**.
-2. Dans *Advanced settings → Secrets*, déclarer l'adresse de l'API :
+2. Dans *Advanced settings → Secrets* :
 
    ```toml
-   API_URL = "https://votre-compte-agritech-api.hf.space"
+   API_EMBEDDED = "1"
    ```
 
 Streamlit promeut ses secrets de type chaîne en variables d'environnement, et
-`app/api_client.py` lit précisément `API_URL` : rien d'autre à brancher. Le fichier
+`app/api_client.py` lit précisément celle-ci : rien d'autre à brancher. Le fichier
 [`requirements.txt`](requirements.txt) à la racine n'existe que pour Streamlit Cloud, qui
-cherche les dépendances à cet endroit ; il se contente de renvoyer vers
-`app/requirements.txt` pour qu'il n'y ait qu'une seule source.
+cherche les dépendances à cet endroit ; il renvoie vers les deux listes existantes
+plutôt que d'en recopier une ligne.
 
 ### Les choix qui méritent une explication
 
-**Un seul secret dans tout le projet.** La publication sur GHCR s'authentifie avec le
-`GITHUB_TOKEN` que GitHub fournit automatiquement : aucun identifiant à stocker. Seul le
-déploiement Hugging Face demande un secret, `HF_TOKEN`, et il vit dans les paramètres du
-dépôt — jamais dans un fichier. C'est ce que demande le sujet dans ses points de vigilance.
-
-**Un déploiement non configuré ne fait pas échouer le pipeline.** Le job `espace` porte
-`if: vars.HF_SPACE != ''` : tant que la variable n'est pas définie, il est ignoré plutôt
-que rouge. Et l'alerte vérifie explicitement le *résultat* de chaque job, car un `needs`
-sur un job ignoré aurait suffi à la faire ignorer elle aussi.
+**Aucun secret dans tout le projet.** La publication sur GHCR s'authentifie avec le
+`GITHUB_TOKEN` que GitHub fournit automatiquement à chaque run, et le déploiement de
+l'interface ne demande qu'un réglage public. Il n'y a donc aucun identifiant à stocker,
+ni dans le dépôt ni dans les paramètres — ce que demandent les points de vigilance du
+sujet.
 
 **Les étapes critiques échouent bien.** `image` déclare `needs: tests` : une suite rouge
 ne peut pas être publiée. Et avant de pousser quoi que ce soit, le job démarre le
@@ -415,12 +423,12 @@ registre intact.
 **Python 3.13 et des versions épinglées.** Les deux modèles servis sont des *pickles* : ils
 ne se rechargent pas de façon fiable sous une version de scikit-learn autre que celle qui
 les a produits. `api/requirements.txt` épingle donc scikit-learn 1.9.0, et le workflow fixe
-Python 3.13. Sans cela, l'installation d'une version plus récente ferait échouer les
-quarante tests sur une erreur de désérialisation difficile à lire.
+Python 3.13. Sans cela, l'installation d'une version plus récente ferait échouer les tests
+sur une erreur de désérialisation difficile à lire.
 
 **Un jeu de dépendances réduit.** La CI n'installe ni MLflow, ni matplotlib, ni Jupyter :
-la suite de tests n'en a pas besoin. Vérifié dans un environnement neuf — les 40 tests
-passent avec les deux fichiers de requirements, plus `pytest` et `httpx`.
+la suite de tests n'en a pas besoin. Les 54 tests passent avec les deux fichiers de
+requirements, plus `pytest` et `httpx`.
 
 **Des commandes `docker` en clair** plutôt que `login-action` et `build-push-action`. Le
 runner fournit déjà Docker, et cela évite d'épingler des versions d'actions tierces. Le
@@ -461,8 +469,7 @@ api/               API FastAPI (étape 3) et ses dépendances
 app/               interface Streamlit (étape 4), son client HTTP et son Dockerfile
 tests/             tests de l'API et de l'interface
 scripts/           vérification des notebooks
-deploy/            déploiement du Space Hugging Face : carte du Space et script de push
-requirements.txt   dépendances de l'interface, pour Streamlit Cloud (renvoie vers app/)
+requirements.txt   dépendances à la racine, pour Streamlit Cloud (renvoie vers api/ et app/)
 Dockerfile         image de l'API
 docker-compose.yml API + interface en local
 .github/workflows/ pipeline CI/CD

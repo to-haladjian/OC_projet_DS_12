@@ -4,7 +4,9 @@ No Streamlit here, and no ML: this module sends what the user typed and returns 
 the API answered. It is therefore testable on its own.
 
 The API address comes from the `API_URL` environment variable (set by Docker Compose,
-or by Streamlit secrets once deployed), `http://localhost:8000` by default.
+or by Streamlit secrets once deployed), `http://localhost:8000` by default. Where no
+API can be hosted next to the interface, `API_EMBEDDED=1` starts one in this very
+process and points the client at it — see `embedded_api`.
 """
 
 from __future__ import annotations
@@ -31,7 +33,21 @@ class ErreurAPI(Exception):
         self.statut = statut
 
 
+def embedded_mode() -> bool:
+    """True when the API is to run inside this process rather than being reached.
+
+    `API_URL` wins: an explicit address always means a real API somewhere else.
+    """
+    if os.environ.get("API_URL"):
+        return False
+    return os.environ.get("API_EMBEDDED", "").strip().lower() in {"1", "true", "oui"}
+
+
 def url_api() -> str:
+    if embedded_mode():
+        import embedded_api
+
+        return embedded_api.start()
     return os.environ.get("API_URL", URL_PAR_DEFAUT).rstrip("/")
 
 
@@ -51,10 +67,12 @@ def _appel(methode: str, chemin: str, delai: float, corps: dict | None = None):
     except requests.Timeout as erreur:
         raise ErreurAPI(f"L'API n'a pas répondu à temps ({delai} s) : {url}") from erreur
     except requests.ConnectionError as erreur:
-        raise ErreurAPI(
-            f"L'API ne répond pas à {url_api()}. Est-elle démarrée ? "
-            "(`uvicorn api.main:app` ou `docker compose up`)"
-        ) from erreur
+        # In embedded mode, telling the user to start a server would be nonsense: the
+        # server is this process, so its thread has died.
+        indice = ("Le service interne s'est arrêté : rechargez la page."
+                  if embedded_mode()
+                  else "Est-elle démarrée ? (`uvicorn api.main:app` ou `docker compose up`)")
+        raise ErreurAPI(f"L'API ne répond pas à {url_api()}. {indice}") from erreur
 
     if reponse.status_code == 422:
         raise ErreurAPI(_detail_422(reponse.json()), 422)
