@@ -90,7 +90,7 @@ déclarerait sain à tort.
 | Livrable | Fichier |
 |---|---|
 | Notebooks d'analyse et de fusion | [`notebooks/`](notebooks/) |
-| Dataset consolidé (999 769 × 18) | `data/processed/crop_dataset_consolidated.csv` |
+| Dataset consolidé (999 769 × 18) | `data/processed/crop_dataset_consolidated.csv.gz` — 43 Mo, versionné ; le CSV en clair (174 Mo) se régénère en local |
 | Jeu historique reconstruit (25 527 × 8) | `data/processed/crop_yield_prediction.csv` |
 | Bornes du domaine d'apprentissage (40 bornes) | `data/processed/domaine_apprentissage.csv` |
 | Prix au producteur FAOSTAT nettoyés (étape 2) | `data/processed/prix_producteur.csv` |
@@ -328,22 +328,54 @@ Compose, `http://api:8000`).
 | Image de l'interface et démo locale | [`app/Dockerfile`](app/Dockerfile), [`docker-compose.yml`](docker-compose.yml) |
 | Tests | `tests/test_api_client.py` (client, API simulée), `tests/test_app.py` (interface contre la vraie API) |
 
-## Intégration continue
+## Intégration continue et livraison
 
 Le workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) s'exécute **à chaque
-push sur `dev`**, et se lance aussi à la demande depuis l'onglet Actions. Il ne fait qu'une
-chose : jouer toute la suite de tests.
+push sur `dev`**, et se lance aussi à la demande depuis l'onglet Actions. Il enchaîne trois
+jobs.
 
-```bash
-pytest -q        # en local, le même contrôle
+```mermaid
+flowchart LR
+    push["push sur dev"] --> tests
+    tests["Tests<br/>40 tests, pytest"] -->|succès| image
+    tests -->|échec| alerte
+    image["Image Docker<br/>build → /health → push GHCR"] -->|échec| alerte
+    image -->|succès| ok(["ghcr.io/…:dev<br/>ghcr.io/…:sha-xxxxxxx"])
+    alerte["Alerte<br/>e-mail + issue"]
 ```
 
-Deux choix méritent une explication.
+| Job | Rôle | Déclencheur |
+|---|---|---|
+| `tests` | joue toute la suite | chaque push sur `dev`, ou manuellement |
+| `image` | construit l'image de l'API, vérifie qu'elle répond, la publie sur GHCR | seulement si `tests` passe |
+| `alerte` | ouvre ou commente une issue portant le lien du run | seulement si un job échoue |
 
-**Python 3.13 et des versions épinglées.** Les deux modèles servis sont des *pickles* :
-ils ne se rechargent pas de façon fiable sous une version de scikit-learn autre que celle
-qui les a produits. `api/requirements.txt` épingle donc scikit-learn 1.9.0, et le workflow
-fixe Python 3.13. Sans cela, l'installation d'une version plus récente ferait échouer les
+### Récupérer l'image publiée
+
+```bash
+docker pull ghcr.io/to-haladjian/oc_projet_ds_12:dev
+docker run -p 8000:8000 ghcr.io/to-haladjian/oc_projet_ds_12:dev
+```
+
+Deux étiquettes sont publiées : `dev` pour la dernière image de la branche, et
+`sha-xxxxxxx` pour relier une image à un commit précis.
+
+### Les choix qui méritent une explication
+
+**Aucun secret n'est nécessaire.** La publication sur GHCR s'authentifie avec le
+`GITHUB_TOKEN` que GitHub fournit automatiquement à chaque run. Il n'y a donc ni clé ni
+identifiant stocké dans le dépôt ni dans ses paramètres — ce que le sujet demande dans ses
+points de vigilance.
+
+**Les étapes critiques échouent bien.** `image` déclare `needs: tests` : une suite rouge
+empêche la construction, donc une régression ne peut pas être publiée. Et avant de pousser
+quoi que ce soit, le job démarre le conteneur et interroge `/health` : une image qui ne
+charge pas ses modèles échoue là, sans toucher au registre.
+
+**Python 3.13 et des versions épinglées.** Les deux modèles servis sont des *pickles* : ils
+ne se rechargent pas de façon fiable sous une version de scikit-learn autre que celle qui
+les a produits. `api/requirements.txt` épingle donc scikit-learn 1.9.0, et le workflow fixe
+Python 3.13. Sans cela, l'installation d'une version plus récente ferait échouer les
 quarante tests sur une erreur de désérialisation difficile à lire.
 
 **Un jeu de dépendances réduit.** La CI n'installe ni MLflow, ni matplotlib, ni Jupyter :
@@ -351,7 +383,25 @@ la suite de tests n'en a pas besoin, et les écarter raccourcit l'installation. 
 un environnement neuf — les 40 tests passent avec les deux fichiers de requirements, plus
 `pytest` et `httpx`.
 
-Le déploiement n'est pas encore traité : ce workflow s'arrête aux tests.
+**Des commandes `docker` en clair** plutôt que `login-action` et `build-push-action`. Le
+runner fournit déjà Docker, et cela évite d'épingler des versions d'actions tierces. Le
+coût est de perdre le cache de couches : l'installation pip reprend une à deux minutes par
+run.
+
+**Les notifications.** GitHub envoie déjà un e-mail à l'auteur du push en cas d'échec. Le
+job `alerte` y ajoute une issue étiquetée `ci`, visible dans le dépôt et porteuse du lien
+du run fautif. Une seule issue reste ouverte à la fois : les échecs suivants la commentent
+au lieu d'en empiler une par push.
+
+### Ce qui n'est pas automatisé
+
+Le déploiement d'un service en ligne n'est pas dans le périmètre : le pipeline s'arrête à la
+publication de l'image sur le registre. Pour une démonstration locale,
+`docker compose up --build` lance l'API et l'interface ensemble.
+
+```bash
+pytest -q        # en local, exactement le contrôle que joue la CI
+```
 
 ## Structure
 

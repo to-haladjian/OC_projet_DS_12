@@ -1,11 +1,22 @@
 name: CI
 
-# Déclenchement sur la branche de développement uniquement. Le déploiement sera traité
-# séparément : ce workflow ne fait que vérifier que la suite de tests passe.
+# Trois jobs enchaînés : tests -> image -> alerte.
+#
+# `image` dépend de `tests` : une suite rouge empêche la construction de l'image, ce qui
+# répond au point de vigilance du sujet (« vérifier que les étapes critiques échouent bien
+# en cas d'erreur »). `alerte` ne se déclenche que si l'un des deux échoue.
+#
+# Aucun secret n'est nécessaire : la publication sur GHCR s'authentifie avec le
+# GITHUB_TOKEN que GitHub fournit automatiquement à chaque run.
 on:
   push:
     branches: [dev]
   workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write   # publier l'image sur GHCR
+  issues: write     # ouvrir une issue en cas d'échec
 
 jobs:
   tests:
@@ -36,3 +47,90 @@ jobs:
 
       - name: Tests
         run: pytest -q
+
+  image:
+    name: Image Docker
+    needs: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # GHCR exige un nom d'image en minuscules, or le dépôt s'appelle OC_projet_DS_12.
+      - name: Déterminer le nom de l'image
+        id: nom
+        run: echo "image=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      # On construit avant de s'authentifier : un Dockerfile cassé échoue ici, sans
+      # avoir touché au registre.
+      - name: Construire l'image de l'API
+        run: docker build -t api:ci .
+
+      # Contrôle de fumée : l'image doit répondre sur /health, modèles chargés. Sans
+      # cela, on publierait une image qui ne démarre pas.
+      - name: Vérifier que l'image démarre
+        run: |
+          docker run -d --name verif -p 8000:8000 api:ci
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8000/health > /tmp/sante.json; then
+              cat /tmp/sante.json; echo; docker rm -f verif; exit 0
+            fi
+            sleep 2
+          done
+          echo "l'API n'a pas répondu dans le délai imparti"
+          docker logs verif
+          docker rm -f verif
+          exit 1
+
+      - name: Se connecter à GHCR
+        run: echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      # Deux étiquettes : `dev` pour la dernière image de la branche, et le SHA court
+      # pour relier une image à un commit précis.
+      - name: Publier l'image
+        run: |
+          IMAGE="${{ steps.nom.outputs.image }}"
+          SHA="${GITHUB_SHA::7}"
+          docker tag api:ci "$IMAGE:dev"
+          docker tag api:ci "$IMAGE:sha-$SHA"
+          docker push "$IMAGE:dev"
+          docker push "$IMAGE:sha-$SHA"
+          echo "publié : $IMAGE:dev et $IMAGE:sha-$SHA"
+
+  alerte:
+    name: Alerte en cas d'échec
+    needs: [tests, image]
+    if: failure()
+    runs-on: ubuntu-latest
+
+    steps:
+      # GitHub envoie déjà un e-mail à l'auteur du push. On y ajoute une issue, qui
+      # reste visible dans le dépôt et porte le lien du run fautif. Une seule issue
+      # ouverte à la fois : on commente la précédente plutôt que d'en empiler une par
+      # push rouge.
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const titre = "La CI échoue sur dev";
+            const lien = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}` +
+                         `/actions/runs/${context.runId}`;
+            const corps = `Le run [#${context.runNumber}](${lien}) a échoué sur le commit ` +
+                          `${context.sha.slice(0, 7)}.`;
+
+            const ouvertes = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: "open", labels: "ci",
+            });
+
+            if (ouvertes.data.length > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: ouvertes.data[0].number, body: corps,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title: titre, body: corps, labels: ["ci"],
+              });
+            }
