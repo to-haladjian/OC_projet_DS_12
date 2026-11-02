@@ -32,7 +32,7 @@ from src.data.crop_mapping import (
     SOURCE_FAO,
     SOURCE_IMPUTED,
 )
-from src.data.preparation import charge, nettoie
+from src.data.preparation import charge as charge_jeu_simule, nettoie
 from src.data.rapport import Rapport
 
 #: Agronomic profile columns added to each plot.
@@ -247,7 +247,7 @@ def construit(verbeux: bool = True) -> tuple[pd.DataFrame, pd.DataFrame]:
             print(message)
 
     trace("Preparation d'Agriculture CropYield ...")
-    df_a, rapport_a = nettoie(charge())
+    df_a, rapport_a = nettoie(charge_jeu_simule())
     trace(str(rapport_a))
 
     trace("\nReconstruction de CropYield Prediction ...")
@@ -267,16 +267,42 @@ def construit(verbeux: bool = True) -> tuple[pd.DataFrame, pd.DataFrame]:
     return consolide, profils
 
 
+def charge_consolide() -> pd.DataFrame:
+    """Read the consolidated dataset, from whichever form is available.
+
+    The plain CSV is preferred when present — it is faster to read and it is what the
+    local work regenerates. A freshly cloned repository only holds the gzipped form,
+    which is the versioned deliverable, and `read_csv` handles it from the extension
+    alone. Either way the DataFrame is identical.
+    """
+    chemin = (
+        config.DATASET_CONSOLIDE_CSV
+        if config.DATASET_CONSOLIDE_CSV.exists()
+        else config.DATASET_CONSOLIDE_GZ
+    )
+    if not chemin.exists():
+        raise FileNotFoundError(
+            f"dataset consolide absent : ni {config.DATASET_CONSOLIDE_CSV.name} ni "
+            f"{config.DATASET_CONSOLIDE_GZ.name} dans {config.DATA_TRAITE}. "
+            "Le regenerer avec `python -m src.data.build_dataset`."
+        )
+    return pd.read_csv(chemin)
+
+
 def main() -> None:
     config.DATA_TRAITE.mkdir(parents=True, exist_ok=True)
     config.RAPPORTS.mkdir(parents=True, exist_ok=True)
 
     consolide, _ = construit()
     consolide.to_csv(config.DATASET_CONSOLIDE_CSV, index=False)
+    # Le fichier compresse est le livrable versionne : le CSV en clair depasse la
+    # limite de 100 Mo par fichier de GitHub, le compresse tient en 43 Mo.
+    consolide.to_csv(config.DATASET_CONSOLIDE_GZ, index=False, compression="gzip")
     ecrit_dictionnaire()
 
-    taille = config.DATASET_CONSOLIDE_CSV.stat().st_size / 1024**2
-    print(f"\necrit {config.DATASET_CONSOLIDE_CSV.relative_to(config.RACINE)} ({taille:.1f} Mo)")
+    for chemin in (config.DATASET_CONSOLIDE_CSV, config.DATASET_CONSOLIDE_GZ):
+        taille = chemin.stat().st_size / 1024**2
+        print(f"\necrit {chemin.relative_to(config.RACINE)} ({taille:.1f} Mo)")
     print(f"ecrit {config.DICTIONNAIRE_DONNEES.relative_to(config.RACINE)}")
 
 

@@ -42,8 +42,14 @@ A_ENCODER = set(features.PREDICT_CATEGORIELLES)
 
 
 def charge() -> pd.DataFrame:
-    """Read the consolidated dataset produced by step 1."""
-    return pd.read_csv(config.DATASET_CONSOLIDE_CSV)
+    """Read the consolidated dataset produced by step 1.
+
+    Delegates to `build_dataset.charge()`, which accepts either the plain CSV or the
+    gzipped one — a freshly cloned repository only holds the latter.
+    """
+    from src.data.build_dataset import charge_consolide
+
+    return charge_consolide()
 
 
 def pipeline(modele, variables: list[str]) -> Pipeline:

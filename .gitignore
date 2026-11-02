@@ -1,6 +1,10 @@
 # Données
 data/raw/
 data/processed/*.csv
+# Le dataset consolide est en revanche versionne, sous sa forme compressee : le CSV en
+# clair pese 174 Mo (au-dela de la limite de 100 Mo par fichier de GitHub), le .csv.gz
+# 43 Mo. C'est le livrable 2 de l'etape 1 ; `*.csv` ci-dessus ne l'exclut pas.
+!data/processed/crop_dataset_consolidated.csv.gz
 
 # Matériel de référence, hors périmètre du rendu : projets tiers consultés pendant
 # l'analyse. 128 Mo, et ce n'est pas notre travail — rien de tout cela ne doit partir

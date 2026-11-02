@@ -377,7 +377,7 @@ limites précises :
 
 ## 8. Le livrable et ses limites
 
-Le fichier `data/processed/crop_dataset_consolidated.csv` contient **999 769 lignes et 18
+Le fichier `data/processed/crop_dataset_consolidated.csv.gz` contient **999 769 lignes et 18
 colonnes**, sans aucune valeur manquante. Il constitue la source de vérité unique des
 étapes suivantes, et un dictionnaire des données l'accompagne.
 

@@ -81,7 +81,15 @@ def prix_reference(contextes: dict[str, dict], prix: pd.DataFrame) -> dict:
 
 def domaine_service() -> dict:
     """Training-domain bounds of both services."""
-    simule = pd.read_csv(config.DATASET_CONSOLIDE_CSV, usecols=features.PREDICT_RETENUES[:2])
+    # Le dataset consolide existe sous deux formes : le CSV en clair, regenere
+    # localement, et le .csv.gz versionne. Un depot fraichement clone n'a que le
+    # second, d'ou le chemin resolu plutot que code en dur.
+    simule = pd.read_csv(
+        config.DATASET_CONSOLIDE_CSV
+        if config.DATASET_CONSOLIDE_CSV.exists()
+        else config.DATASET_CONSOLIDE_GZ,
+        usecols=features.PREDICT_RETENUES[:2],
+    )
     domaine_fao = pd.read_csv(config.DOMAINE_APPRENTISSAGE_CSV)
     domaine_fao = domaine_fao[domaine_fao["variable"].isin(DOMAINE_RECOMMEND)]
     return {

@@ -45,6 +45,12 @@ SOURCE_PRIX_URL = (
 CROP_YIELD_PREDICTION_CSV = DATA_TRAITE / "crop_yield_prediction.csv"
 PRIX_PRODUCTEUR_CSV = DATA_TRAITE / "prix_producteur.csv"
 DATASET_CONSOLIDE_CSV = DATA_TRAITE / "crop_dataset_consolidated.csv"
+
+#: Same dataset, gzipped. This is the versioned deliverable: the plain CSV weighs
+#: 174 MB, past GitHub's 100 MB per-file limit, while the gzipped one weighs 43 MB.
+#: Nothing is lost — pandas reads either transparently — so the repository can be
+#: cloned and used without regenerating anything.
+DATASET_CONSOLIDE_GZ = DATA_TRAITE / "crop_dataset_consolidated.csv.gz"
 DICTIONNAIRE_DONNEES = RAPPORTS / "data_dictionary.md"
 
 #: Bounds of the training domain, per crop and per variable. The step 3 API
