@@ -17,7 +17,7 @@ Architecture cible : **Streamlit** (front) → **FastAPI** (back, modèle ML) �
 | 2 | Moteurs de prédiction et de recommandation + MLflow | ✅ terminée |
 | 3 | API FastAPI + Docker | ✅ terminée |
 | 4 | Interface Streamlit | ✅ terminée |
-| 5 | Tests et CI/CD | à faire |
+| 5 | Tests, CI/CD et déploiement | ✅ terminée |
 
 ## Installation
 
@@ -328,49 +328,89 @@ Compose, `http://api:8000`).
 | Image de l'interface et démo locale | [`app/Dockerfile`](app/Dockerfile), [`docker-compose.yml`](docker-compose.yml) |
 | Tests | `tests/test_api_client.py` (client, API simulée), `tests/test_app.py` (interface contre la vraie API) |
 
-## Intégration continue et livraison
+## Intégration continue et déploiement
 
 Le workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) s'exécute **à chaque
-push sur `dev`**, et se lance aussi à la demande depuis l'onglet Actions. Il enchaîne trois
-jobs.
+push sur `dev`**, et se lance aussi à la demande depuis l'onglet Actions.
 
 ```mermaid
 flowchart LR
     push["push sur dev"] --> tests
     tests["Tests<br/>40 tests, pytest"] -->|succès| image
-    tests -->|échec| alerte
-    image["Image Docker<br/>build → /health → push GHCR"] -->|échec| alerte
-    image -->|succès| ok(["ghcr.io/…:dev<br/>ghcr.io/…:sha-xxxxxxx"])
+    image["Image Docker<br/>build → /health → GHCR"] -->|succès| espace
+    espace["Space Hugging Face<br/>API en ligne"]
+    tests -. échec .-> alerte
+    image -. échec .-> alerte
+    espace -. échec .-> alerte
     alerte["Alerte<br/>e-mail + issue"]
 ```
 
-| Job | Rôle | Déclencheur |
+| Job | Rôle | Condition |
 |---|---|---|
 | `tests` | joue toute la suite | chaque push sur `dev`, ou manuellement |
-| `image` | construit l'image de l'API, vérifie qu'elle répond, la publie sur GHCR | seulement si `tests` passe |
-| `alerte` | ouvre ou commente une issue portant le lien du run | seulement si un job échoue |
+| `image` | construit l'image de l'API, vérifie qu'elle répond, la publie sur GHCR | si `tests` passe |
+| `espace` | pousse l'API vers le Space Hugging Face | si `image` passe **et** `HF_SPACE` est défini |
+| `alerte` | ouvre ou commente une issue portant le lien du run | si un job échoue réellement |
 
-### Récupérer l'image publiée
+### Les services déployés
 
-```bash
-docker pull ghcr.io/to-haladjian/oc_projet_ds_12:dev
-docker run -p 8000:8000 ghcr.io/to-haladjian/oc_projet_ds_12:dev
-```
+| Service | Hébergeur | Pourquoi celui-là |
+|---|---|---|
+| API | **Hugging Face Spaces** (SDK Docker) | gratuit, 16 Go de RAM — la forêt de 150 arbres occupe 200 à 250 Mo en mémoire, ce qui exclut les offres à 512 Mo |
+| Interface | **Streamlit Community Cloud** | gratuit, se branche directement sur le dépôt |
 
-Deux étiquettes sont publiées : `dev` pour la dernière image de la branche, et
-`sha-xxxxxxx` pour relier une image à un commit précis.
+L'interface ne contient **aucune logique ML** : elle interroge l'API. Déployer l'une sans
+l'autre n'a donc pas de sens, et c'est pourquoi les deux vont de pair.
+
+### Mettre en place les deux déploiements
+
+Les deux hébergeurs demandent une action manuelle une seule fois ; ensuite le pipeline s'en
+charge pour l'API.
+
+**1. L'API sur Hugging Face Spaces**
+
+1. Créer un jeton d'écriture sur Hugging Face (*Settings → Access Tokens*, type **Write**).
+2. Dans le dépôt GitHub, *Settings → Secrets and variables → Actions* :
+   - onglet **Secrets** → `HF_TOKEN` = le jeton ;
+   - onglet **Variables** → `HF_SPACE` = `votre-compte/agritech-api`.
+3. Pousser sur `dev`. Le job `espace` crée le Space au premier passage, puis le met à jour.
+
+Le Space est reconstruit à partir du `Dockerfile` du dépôt, qui a été écrit pour cet
+hébergeur : utilisateur d'uid 1000 et port piloté par `PORT`. Seuls `api/`, `src/`,
+`models/` et la carte du Space lui sont poussés — ni données, ni notebooks, ni tests.
+
+**2. L'interface sur Streamlit Community Cloud**
+
+1. Sur [share.streamlit.io](https://share.streamlit.io), créer une app depuis le dépôt,
+   branche `dev`, fichier principal **`app/app.py`**.
+2. Dans *Advanced settings → Secrets*, déclarer l'adresse de l'API :
+
+   ```toml
+   API_URL = "https://votre-compte-agritech-api.hf.space"
+   ```
+
+Streamlit promeut ses secrets de type chaîne en variables d'environnement, et
+`app/api_client.py` lit précisément `API_URL` : rien d'autre à brancher. Le fichier
+[`requirements.txt`](requirements.txt) à la racine n'existe que pour Streamlit Cloud, qui
+cherche les dépendances à cet endroit ; il se contente de renvoyer vers
+`app/requirements.txt` pour qu'il n'y ait qu'une seule source.
 
 ### Les choix qui méritent une explication
 
-**Aucun secret n'est nécessaire.** La publication sur GHCR s'authentifie avec le
-`GITHUB_TOKEN` que GitHub fournit automatiquement à chaque run. Il n'y a donc ni clé ni
-identifiant stocké dans le dépôt ni dans ses paramètres — ce que le sujet demande dans ses
-points de vigilance.
+**Un seul secret dans tout le projet.** La publication sur GHCR s'authentifie avec le
+`GITHUB_TOKEN` que GitHub fournit automatiquement : aucun identifiant à stocker. Seul le
+déploiement Hugging Face demande un secret, `HF_TOKEN`, et il vit dans les paramètres du
+dépôt — jamais dans un fichier. C'est ce que demande le sujet dans ses points de vigilance.
+
+**Un déploiement non configuré ne fait pas échouer le pipeline.** Le job `espace` porte
+`if: vars.HF_SPACE != ''` : tant que la variable n'est pas définie, il est ignoré plutôt
+que rouge. Et l'alerte vérifie explicitement le *résultat* de chaque job, car un `needs`
+sur un job ignoré aurait suffi à la faire ignorer elle aussi.
 
 **Les étapes critiques échouent bien.** `image` déclare `needs: tests` : une suite rouge
-empêche la construction, donc une régression ne peut pas être publiée. Et avant de pousser
-quoi que ce soit, le job démarre le conteneur et interroge `/health` : une image qui ne
-charge pas ses modèles échoue là, sans toucher au registre.
+ne peut pas être publiée. Et avant de pousser quoi que ce soit, le job démarre le
+conteneur et interroge `/health` — une image qui ne charge pas ses modèles s'arrête là,
+registre intact.
 
 **Python 3.13 et des versions épinglées.** Les deux modèles servis sont des *pickles* : ils
 ne se rechargent pas de façon fiable sous une version de scikit-learn autre que celle qui
@@ -379,9 +419,8 @@ Python 3.13. Sans cela, l'installation d'une version plus récente ferait échou
 quarante tests sur une erreur de désérialisation difficile à lire.
 
 **Un jeu de dépendances réduit.** La CI n'installe ni MLflow, ni matplotlib, ni Jupyter :
-la suite de tests n'en a pas besoin, et les écarter raccourcit l'installation. Vérifié dans
-un environnement neuf — les 40 tests passent avec les deux fichiers de requirements, plus
-`pytest` et `httpx`.
+la suite de tests n'en a pas besoin. Vérifié dans un environnement neuf — les 40 tests
+passent avec les deux fichiers de requirements, plus `pytest` et `httpx`.
 
 **Des commandes `docker` en clair** plutôt que `login-action` et `build-push-action`. Le
 runner fournit déjà Docker, et cela évite d'épingler des versions d'actions tierces. Le
@@ -393,15 +432,22 @@ job `alerte` y ajoute une issue étiquetée `ci`, visible dans le dépôt et por
 du run fautif. Une seule issue reste ouverte à la fois : les échecs suivants la commentent
 au lieu d'en empiler une par push.
 
-### Ce qui n'est pas automatisé
-
-Le déploiement d'un service en ligne n'est pas dans le périmètre : le pipeline s'arrête à la
-publication de l'image sur le registre. Pour une démonstration locale,
-`docker compose up --build` lance l'API et l'interface ensemble.
+### En local
 
 ```bash
-pytest -q        # en local, exactement le contrôle que joue la CI
+pytest -q                    # exactement le contrôle que joue la CI
+docker compose up --build    # l'API et l'interface ensemble
 ```
+
+### Récupérer l'image publiée
+
+```bash
+docker pull ghcr.io/to-haladjian/oc_projet_ds_12:dev
+docker run -p 8000:8000 ghcr.io/to-haladjian/oc_projet_ds_12:dev
+```
+
+Deux étiquettes sont publiées : `dev` pour la dernière image de la branche, et
+`sha-xxxxxxx` pour relier une image à un commit précis.
 
 ## Structure
 
@@ -414,8 +460,12 @@ models/            modèles servis, métadonnées et fichiers de service de l'AP
 api/               API FastAPI (étape 3) et ses dépendances
 app/               interface Streamlit (étape 4), son client HTTP et son Dockerfile
 tests/             tests de l'API et de l'interface
+scripts/           vérification des notebooks
+deploy/            déploiement du Space Hugging Face : carte du Space et script de push
+requirements.txt   dépendances de l'interface, pour Streamlit Cloud (renvoie vers app/)
 Dockerfile         image de l'API
 docker-compose.yml API + interface en local
+.github/workflows/ pipeline CI/CD
 src/
   config.py        chemins, graine aléatoire, année de test
   utils.py         style des figures, profilage, mesures d'interaction

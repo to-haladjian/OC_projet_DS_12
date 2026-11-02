@@ -98,10 +98,44 @@ jobs:
           docker push "$IMAGE:sha-$SHA"
           echo "publié : $IMAGE:dev et $IMAGE:sha-$SHA"
 
+  espace:
+    name: Déploiement Hugging Face
+    needs: image
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Tant que le secret ou la variable manquent, le job est simplement ignoré : le
+    # pipeline ne doit pas rougir parce qu'un déploiement optionnel n'est pas configuré.
+    if: ${{ vars.HF_SPACE != '' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Installer le client Hugging Face
+        run: pip install huggingface_hub
+
+      # Le Space reconstruit l'image depuis le Dockerfile du dépôt : on ne lui pousse
+      # que le code servi et les modèles, jamais les données ni les notebooks.
+      - name: Pousser vers le Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE: ${{ vars.HF_SPACE }}
+        run: python deploy/pousse_espace.py
+
   alerte:
     name: Alerte en cas d'échec
-    needs: [tests, image]
-    if: failure()
+    needs: [tests, image, espace]
+    # `always()` est indispensable : sans lui, un `needs` sur un job *ignoré* — ce
+    # qu'est `espace` tant que HF_SPACE n'est pas défini — ferait ignorer cette alerte
+    # aussi. On vérifie donc explicitement les résultats, pour ne se déclencher que sur
+    # un échec réel et jamais sur un job sauté.
+    if: >-
+      ${{ always() && (needs.tests.result == 'failure'
+                       || needs.image.result == 'failure'
+                       || needs.espace.result == 'failure') }}
     runs-on: ubuntu-latest
 
     steps:

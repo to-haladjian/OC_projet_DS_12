@@ -1,0 +1,5 @@
+# Streamlit Community Cloud cherche un fichier de dependances a la racine du depot ;
+# c'est le seul role de ce fichier. Les dependances de l'interface restent declarees
+# dans app/requirements.txt, qui demeure la source unique : on s'y refere plutot que
+# de les recopier, pour qu'elles ne puissent pas diverger.
+-r app/requirements.txt

@@ -33,6 +33,11 @@ dev = [
     "pytest>=8.0",
     "httpx>=0.27",
 ]
+# Deploiement du Space Hugging Face (etape 5) : utilise par le pipeline et par
+# deploy/pousse_espace.py, pas par l'application.
+deploy = [
+    "huggingface_hub>=0.25",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
