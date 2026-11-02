@@ -9,7 +9,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PORT=8000
 
-# Non-root user, uid 1000 (also what Hugging Face Spaces expects).
+# Non-root user, uid 1000: what most container hosts expect for a writable home.
 RUN useradd --create-home --uid 1000 agritech
 WORKDIR /app
 

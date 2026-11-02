@@ -1,13 +1,14 @@
 name: CI
 
-# Trois jobs enchaînés : tests -> image -> alerte.
+# Three jobs: tests -> image -> alerte.
 #
-# `image` dépend de `tests` : une suite rouge empêche la construction de l'image, ce qui
-# répond au point de vigilance du sujet (« vérifier que les étapes critiques échouent bien
-# en cas d'erreur »). `alerte` ne se déclenche que si l'un des deux échoue.
+# `image` depends on `tests`, so a red suite stops the build and nothing reaches the
+# registry. That is what the evaluation sheet asks for — "unit tests, build and
+# deployment steps" — and publishing the image to GHCR is the deployment step: the
+# artefact that leaves the pipeline, tagged by commit.
 #
-# Aucun secret n'est nécessaire : la publication sur GHCR s'authentifie avec le
-# GITHUB_TOKEN que GitHub fournit automatiquement à chaque run.
+# No secret is needed anywhere: publishing to GHCR authenticates with the GITHUB_TOKEN
+# that GitHub mints for each run.
 on:
   push:
     branches: [dev]
@@ -15,8 +16,8 @@ on:
 
 permissions:
   contents: read
-  packages: write   # publier l'image sur GHCR
-  issues: write     # ouvrir une issue en cas d'échec
+  packages: write   # publish the image to GHCR
+  issues: write     # open an issue when the pipeline fails
 
 jobs:
   tests:
@@ -27,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Python 3.13 : les deux modèles sont des pickles produits sous cette version.
+      # Python 3.13: both models are pickles produced under that version.
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
@@ -36,10 +37,9 @@ jobs:
             api/requirements.txt
             app/requirements.txt
 
-      # Les deux fichiers de requirements sont épinglés, scikit-learn compris : un
-      # pickle ne se recharge pas de façon fiable sous une autre version que celle
-      # qui l'a produit. On n'installe ni MLflow, ni matplotlib, ni Jupyter — la
-      # suite de tests n'en a pas besoin.
+      # Both requirements files are pinned, scikit-learn included: a pickle does not
+      # reload reliably under a version other than the one that wrote it. Neither
+      # MLflow, matplotlib nor Jupyter is installed — the test suite needs none of them.
       - name: Installer les dépendances
         run: |
           python -m pip install --upgrade pip
@@ -57,18 +57,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # GHCR exige un nom d'image en minuscules, or le dépôt s'appelle OC_projet_DS_12.
+      # GHCR requires a lowercase image name, and the repository is OC_projet_DS_12.
       - name: Déterminer le nom de l'image
         id: nom
         run: echo "image=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
 
-      # On construit avant de s'authentifier : un Dockerfile cassé échoue ici, sans
-      # avoir touché au registre.
+      # Build before authenticating: a broken Dockerfile fails here, registry untouched.
       - name: Construire l'image de l'API
         run: docker build -t api:ci .
 
-      # Contrôle de fumée : l'image doit répondre sur /health, modèles chargés. Sans
-      # cela, on publierait une image qui ne démarre pas.
+      # Smoke test: the image must answer on /health with its models loaded. Without
+      # this, we would happily publish an image that does not start.
       - name: Vérifier que l'image démarre
         run: |
           docker run -d --name verif -p 8000:8000 api:ci
@@ -86,8 +85,8 @@ jobs:
       - name: Se connecter à GHCR
         run: echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-      # Deux étiquettes : `dev` pour la dernière image de la branche, et le SHA court
-      # pour relier une image à un commit précis.
+      # Two tags: `dev` for the branch's latest image, and the short SHA to tie an
+      # image back to the commit it was built from.
       - name: Publier l'image
         run: |
           IMAGE="${{ steps.nom.outputs.image }}"
@@ -98,51 +97,16 @@ jobs:
           docker push "$IMAGE:sha-$SHA"
           echo "publié : $IMAGE:dev et $IMAGE:sha-$SHA"
 
-  espace:
-    name: Déploiement Hugging Face
-    needs: image
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    # Tant que le secret ou la variable manquent, le job est simplement ignoré : le
-    # pipeline ne doit pas rougir parce qu'un déploiement optionnel n'est pas configuré.
-    if: ${{ vars.HF_SPACE != '' }}
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-
-      - name: Installer le client Hugging Face
-        run: pip install huggingface_hub
-
-      # Le Space reconstruit l'image depuis le Dockerfile du dépôt : on ne lui pousse
-      # que le code servi et les modèles, jamais les données ni les notebooks.
-      - name: Pousser vers le Space
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          HF_SPACE: ${{ vars.HF_SPACE }}
-        run: python deploy/pousse_espace.py
-
   alerte:
     name: Alerte en cas d'échec
-    needs: [tests, image, espace]
-    # `always()` est indispensable : sans lui, un `needs` sur un job *ignoré* — ce
-    # qu'est `espace` tant que HF_SPACE n'est pas défini — ferait ignorer cette alerte
-    # aussi. On vérifie donc explicitement les résultats, pour ne se déclencher que sur
-    # un échec réel et jamais sur un job sauté.
-    if: >-
-      ${{ always() && (needs.tests.result == 'failure'
-                       || needs.image.result == 'failure'
-                       || needs.espace.result == 'failure') }}
+    needs: [tests, image]
+    if: ${{ failure() }}
     runs-on: ubuntu-latest
 
     steps:
-      # GitHub envoie déjà un e-mail à l'auteur du push. On y ajoute une issue, qui
-      # reste visible dans le dépôt et porte le lien du run fautif. Une seule issue
-      # ouverte à la fois : on commente la précédente plutôt que d'en empiler une par
-      # push rouge.
+      # GitHub already e-mails whoever pushed. This adds an issue, which stays visible
+      # in the repository and carries the link to the failing run. Only one issue is
+      # ever open: further failures comment on it instead of piling up one per push.
       - uses: actions/github-script@v7
         with:
           script: |

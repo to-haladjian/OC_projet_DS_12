@@ -33,17 +33,12 @@ dev = [
     "pytest>=8.0",
     "httpx>=0.27",
 ]
-# Deploiement du Space Hugging Face (etape 5) : utilise par le pipeline et par
-# deploy/pousse_espace.py, pas par l'application.
-deploy = [
-    "huggingface_hub>=0.25",
-]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-# Arborescence plate : api/, app/ et src/ sont a la racine et ne sont pas installes.
-# Sans cette ligne, `pytest` echoue a importer `api` alors que `python -m pytest`
-# fonctionne, le second ajoutant le repertoire courant a sys.path et le premier pas.
+# Flat layout: api/, app/ and src/ sit at the root and are not installed. Without this
+# line, `pytest` fails to import `api` while `python -m pytest` succeeds — the latter
+# puts the current directory on sys.path, the former does not.
 pythonpath = ["."]
 filterwarnings = [
     # Starlette's TestClient announces its move away from httpx; harmless here.
