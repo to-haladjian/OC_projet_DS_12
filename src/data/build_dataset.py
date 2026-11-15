@@ -21,6 +21,9 @@ Runnable as a script to regenerate the consolidated CSV.
 
 from __future__ import annotations
 
+import gzip
+import hashlib
+
 import numpy as np
 import pandas as pd
 
@@ -289,6 +292,24 @@ def load_consolidated() -> pd.DataFrame:
     return pd.read_csv(path)
 
 
+def _digest(path, opener) -> str:
+    """MD5 of a file's (decompressed) content, read in chunks."""
+    digest = hashlib.md5()
+    with opener(path, "rb") as file:
+        for chunk in iter(lambda: file.read(1 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _gzip_is_stale() -> bool:
+    """True when the gzipped dataset is missing or differs from the plain CSV."""
+    if not config.CONSOLIDATED_DATASET_GZ.exists():
+        return True
+    return _digest(config.CONSOLIDATED_DATASET_GZ, gzip.open) != _digest(
+        config.CONSOLIDATED_DATASET_CSV, open
+    )
+
+
 def main() -> None:
     config.PROCESSED_DATA.mkdir(parents=True, exist_ok=True)
     config.REPORTS.mkdir(parents=True, exist_ok=True)
@@ -296,8 +317,14 @@ def main() -> None:
     consolidated, _ = build()
     consolidated.to_csv(config.CONSOLIDATED_DATASET_CSV, index=False)
     # The gzipped file is the versioned deliverable: the plain CSV exceeds GitHub's
-    # 100 MB per-file limit, the gzipped one fits in 43 MB.
-    consolidated.to_csv(config.CONSOLIDATED_DATASET_GZ, index=False, compression="gzip")
+    # 100 MB per-file limit, the gzipped one fits in 43 MB. It is only rewritten when
+    # its content changes: a gzip header carries a timestamp, so rewriting identical
+    # data would still hand git a new 43 MB blob on every replay.
+    if _gzip_is_stale():
+        consolidated.to_csv(
+            config.CONSOLIDATED_DATASET_GZ, index=False,
+            compression={"method": "gzip", "mtime": 0},
+        )
     write_dictionary()
 
     for path in (config.CONSOLIDATED_DATASET_CSV, config.CONSOLIDATED_DATASET_GZ):
