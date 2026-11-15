@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import KFold, train_test_split
+from sklearn.model_selection import GroupKFold, KFold, train_test_split
 
 from src import config
 
@@ -94,6 +94,22 @@ def temporal_cv(
         if not len(training) or not len(validation):
             raise AssertionError(f"pli {year} vide : apprentissage ou validation sans ligne")
         folds.append((training, validation))
+    return folds
+
+
+def country_cv(countries: pd.Series, n_folds: int = 5) -> list[tuple[np.ndarray, np.ndarray]]:
+    """Leave-country-out folds: every country is validated by a model that never saw it.
+
+    The temporal protocol answers "how well do we predict next year for a country we
+    know?". This one answers the other question a recommendation raises: "what do the
+    conditions alone tell us, for a place the model has no history of?". A country
+    appears in exactly one validation fold, and never on both sides of a fold.
+    """
+    values = countries.to_numpy()
+    folds = list(GroupKFold(n_splits=n_folds).split(values, groups=values))
+    for training, validation in folds:
+        if set(values[training]) & set(values[validation]):
+            raise AssertionError("un pays figure des deux cotes d'un pli")
     return folds
 
 

@@ -125,27 +125,51 @@ def selected_model(n_trees: int = 150) -> Pipeline:
 class Result:
     """What a full training run produces.
 
-    `ranking` holds one set of ranking metrics per view (see :data:`VIEWS`).
+    `scores` holds the held-out metrics, `cv` the temporal cross-validation ones and
+    `country_cv` the leave-country-out ones — all three named as the tracking schema
+    expects. `ranking` holds one set of ranking metrics per view (see :data:`VIEWS`).
     """
 
     model: Pipeline
     scores: dict[str, float]
+    cv: dict[str, float]
+    country_cv: dict[str, float]
     ranking: dict[str, dict[str, float]]
     n_train: int
     n_test: int
 
 
 def train(df: pd.DataFrame | None = None, n_trees: int = 150, verbose: bool = True) -> Result:
-    """Train on the years before 2013, evaluate once on 2013."""
+    """Train on the years before 2013, evaluate once on 2013.
+
+    Two cross-validations run on the training years only, with the served settings:
+
+    * **temporal** — predict a year from the ones before it. This is the service's real
+      situation and the figure every candidate is compared on;
+    * **leave-country-out** — predict countries the model never saw. It measures what
+      the conditions and the position explain on their own, and it is much weaker: the
+      gap between the two is the part of the performance that comes from knowing the
+      country. That limit is reported, not hidden.
+    """
     df = load() if df is None else df
     X_train, X_test, y_train, y_test = protocol.temporal_split(
         df, VARIABLES, features.YIELD_TARGET
     )
 
+    cv = evaluation.summarise(evaluation.validate_by_fold(
+        selected_model(n_trees), df[VARIABLES], df[features.YIELD_TARGET],
+        protocol.temporal_cv(df["year"], VALIDATION_YEARS),
+    ))
+    before = df[df["year"] < config.TEST_YEAR]
+    country_cv = evaluation.summarise(evaluation.validate_by_fold(
+        selected_model(n_trees), X_train, y_train, protocol.country_cv(before["iso3"]),
+    ))
+
     model = selected_model(n_trees).fit(X_train, y_train)
     predictions = model.predict(X_test)
 
     scores = evaluation.metrics(y_test, predictions, "test")
+    scores |= evaluation.metrics(y_train, model.predict(X_train), "train")
     test = df[df["year"] == config.TEST_YEAR]
     prices = fao_prices.load() if config.PRODUCER_PRICES_CSV.exists() else None
     ranking = quality_by_view(test, pd.Series(predictions, index=test.index), prices)
@@ -154,12 +178,14 @@ def train(df: pd.DataFrame | None = None, n_trees: int = 150, verbose: bool = Tr
         print(f"apprentissage : {len(X_train):,} lignes ({df.year.min()}-{config.TEST_YEAR - 1})")
         print(f"test          : {len(X_test):,} lignes ({config.TEST_YEAR})")
         print()
-        print(f"RMSE {scores['test_rmse']:.4f} t/ha | MAE {scores['test_mae']:.4f} "
-              f"| R2 {scores['test_r2']:.4f}")
+        print(f"validation temporelle    : {evaluation.readable_line(cv)}")
+        print(f"validation hors pays     : {evaluation.readable_line(country_cv)}")
+        print(f"test {config.TEST_YEAR}                : RMSE {scores['test_rmse']:.4f} t/ha "
+              f"| MAE {scores['test_mae']:.4f} t/ha | R² {scores['test_r2']:.4f}")
         print()
         print(views_table(ranking).round(3).to_string())
 
-    return Result(model, scores, ranking, len(X_train), len(X_test))
+    return Result(model, scores, cv, country_cv, ranking, len(X_train), len(X_test))
 
 
 # --------------------------------------------------------------------------- #
@@ -217,9 +243,9 @@ def views_table(quality: dict[str, dict[str, float]]) -> pd.DataFrame:
 
 
 def mlflow_metrics(quality: dict[str, dict[str, float]]) -> dict[str, float]:
-    """Flatten the per-view metrics into MLflow metric names."""
+    """Flatten the per-view metrics into MLflow metric names: `rank_<view>_<measure>`."""
     return {
-        f"classement_{view}_{name}": value
+        f"rank_{view}_{name}": value
         for view, measures in quality.items()
         for name, value in measures.items()
     }
@@ -407,6 +433,8 @@ def save(result: Result, df: pd.DataFrame) -> None:
         "n_train": result.n_train,
         "n_test": result.n_test,
         "scores": result.scores,
+        "cv_temporal": result.cv,
+        "cv_leave_country_out": result.country_cv,
         "ranking_quality": {
             view: {"description": VIEWS[view], **measures}
             for view, measures in result.ranking.items()
@@ -437,10 +465,45 @@ def save(result: Result, df: pd.DataFrame) -> None:
     path.write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
+def log(result: Result) -> str:
+    """Track the served model as a final evaluation, on the shared schema.
+
+    The cross-validation metrics are the temporal ones, like every other run of the
+    experiment; the leave-country-out ones are added under their own names.
+    """
+    from src import tracking
+
+    tracking.configure(tracking.EXPERIMENT_YIELD)
+    estimator = result.model.named_steps["model"]
+    return tracking.log_evaluation(
+        f"{tracking.family(result.model)} — modèle servi, test {config.TEST_YEAR}",
+        tracking.describe(
+            result.model, tracking.DATASET_FAO, "history", "temporal",
+            n_estimators=estimator.n_estimators, **SETTINGS,
+            test_year=config.TEST_YEAR, n_train=result.n_train, n_test=result.n_test,
+        ),
+        {
+            **result.cv, **result.scores,
+            **{f"country_{name}": value for name, value in result.country_cv.items()},
+            **mlflow_metrics(result.ranking),
+            "model_size_mb": compressed_size(result.model),
+        },
+        phase="final_evaluation",
+        note=(
+            "Modèle servi par l'API pour /predict et /recommend. Validation temporelle "
+            "(prédire une année à partir des précédentes), puis test unique sur "
+            f"{config.TEST_YEAR}. Les métriques country_* mesurent la même chose sur des pays "
+            "jamais vus : l'écart avec la validation temporelle est la part de la "
+            "performance qui vient de la connaissance du pays."
+        ),
+    )
+
+
 def main() -> None:
     df = load()
     result = train(df)
     save(result, df)
+    log(result)
     size_mb = config.YIELD_MODEL_PATH.stat().st_size / 1024**2
     print(f"\necrit {config.YIELD_MODEL_PATH.relative_to(config.ROOT)} ({size_mb:.1f} Mo)")
     print("ecrit models/yield_model_metadata.json")
