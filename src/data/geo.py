@@ -25,7 +25,7 @@ import unicodedata
 #: Names present in the sources but deliberately without an ISO3 code: defunct
 #: historical entities and non-geographic aggregates. Discarding them is a
 #: documented choice, not an oversight.
-SANS_ISO3: frozenset[str] = frozenset({
+WITHOUT_ISO3: frozenset[str] = frozenset({
     "belgium luxembourg",
     "channel islands",
     "czechoslovakia",
@@ -44,7 +44,7 @@ SANS_ISO3: frozenset[str] = frozenset({
 #: The rows of these countries remain usable for the other variables. Five of them
 #: carry yield data (Angola 172 rows, Micronesia 118, Serbia 40, Montenegro 24,
 #: Vanuatu 24); the other six are micro-states with no reported crop.
-PLUIE_NON_FIABLE: frozenset[str] = frozenset({
+UNRELIABLE_RAIN: frozenset[str] = frozenset({
     "AGO",  # Angola           <- Andorra
     "FSM",  # Micronesia       <- Mexico
     "KIR",  # Kiribati         <- Kenya
@@ -61,7 +61,7 @@ PLUIE_NON_FIABLE: frozenset[str] = frozenset({
 #: Forms that neither normalisation nor an automatic lookup resolve:
 #: FAO long labels, World Bank suffixes, and `Turkey`, which recent
 #: reference lists index as `Turkiye`.
-ALIAS_MANUELS: dict[str, str] = {
+MANUAL_ALIASES: dict[str, str] = {
     "bahamas": "BHS",
     "bahamas the": "BHS",
     "bolivia": "BOL",
@@ -152,7 +152,7 @@ ALIAS_MANUELS: dict[str, str] = {
 }
 
 #: Full table, generated then frozen: normalised name -> ISO3 code.
-ISO3_PAR_NOM: dict[str, str] = {
+ISO3_BY_NAME: dict[str, str] = {
     "afghanistan": "AFG",
     "albania": "ALB",
     "algeria": "DZA",
@@ -413,45 +413,45 @@ ISO3_PAR_NOM: dict[str, str] = {
 }
 
 
-def normalise(nom: str) -> str:
+def normalise(name: str) -> str:
     """Reduce a country name to a comparable form.
 
     Strips accents, lowercases, harmonises apostrophes and replaces any punctuation
     with a space. This is what catches `"South Korea "` and its trailing space, or
     `Cote d'Ivoire` versus `Cote D'Ivoire`.
     """
-    s = unicodedata.normalize("NFKD", str(nom))
+    s = unicodedata.normalize("NFKD", str(name))
     s = "".join(c for c in s if not unicodedata.combining(c))
     s = s.casefold().replace("\u2019", "'").replace("`", "'")
     s = re.sub(r"[^a-z0-9]+", " ", s)
     return re.sub(r"\s+", " ", s).strip()
 
 
-def vers_iso3(noms) -> dict[str, str | None]:
+def to_iso3(names) -> dict[str, str | None]:
     """Map each country name to its ISO3 code, or None if it has none.
 
     Returns a dictionary keyed by the original name, directly usable with
     `pandas.Series.map`.
     """
-    resultat = {}
-    for nom in noms:
-        cle = normalise(nom)
-        if cle in SANS_ISO3:
-            resultat[nom] = None
+    result = {}
+    for name in names:
+        key = normalise(name)
+        if key in WITHOUT_ISO3:
+            result[name] = None
         else:
-            resultat[nom] = ALIAS_MANUELS.get(cle) or ISO3_PAR_NOM.get(cle)
-    return resultat
+            result[name] = MANUAL_ALIASES.get(key) or ISO3_BY_NAME.get(key)
+    return result
 
 
-def _controle() -> None:
+def _check() -> None:
     """Check that the frozen table contradicts no manual alias."""
-    for cle, code in ALIAS_MANUELS.items():
-        autre = ISO3_PAR_NOM.get(cle)
-        if autre is not None and autre != code:
-            raise ValueError(f"{cle!r} : alias {code} contredit la table {autre}")
+    for key, code in MANUAL_ALIASES.items():
+        other = ISO3_BY_NAME.get(key)
+        if other is not None and other != code:
+            raise ValueError(f"{key!r} : alias {code} contredit la table {other}")
 
 
-_controle()
+_check()
 
 
 #: Position of each country, as (longitude, latitude) degrees. **Frozen table**: generated
@@ -465,7 +465,7 @@ _controle()
 #:
 #: Plausibility checks: France (2.86, 47.40), United States (-92.09, 39.20),
 #: New Zealand (174.61, -39.17), India (78.73, 20.33).
-COORDONNEES: dict[str, tuple[float, float]] = {
+COORDINATES: dict[str, tuple[float, float]] = {
     "AFG": (67.16, 34.98),
     "AGO": (15.13, -10.33),
     "ALB": (19.87, 41.04),
@@ -679,6 +679,6 @@ def position(iso3: str) -> tuple[float, float]:
     produce silently wrong geography.
     """
     try:
-        return COORDONNEES[iso3]
+        return COORDINATES[iso3]
     except KeyError:
         raise KeyError(f"aucune coordonnee pour {iso3!r}") from None

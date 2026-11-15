@@ -14,7 +14,7 @@ from src import config
 
 #: Sample size for figures. Plotting a million points is slow and adds nothing
 #: visually; statistics are still computed on the full dataset.
-ECHANTILLON_FIGURES = 100_000
+FIGURE_SAMPLE = 100_000
 
 
 def style() -> None:
@@ -25,16 +25,16 @@ def style() -> None:
     pd.set_option("display.max_columns", 40)
 
 
-def enregistre(nom: str) -> None:
+def save_figure(name: str) -> None:
     """Save the current figure to `reports/figures`, for the business report."""
     config.FIGURES.mkdir(parents=True, exist_ok=True)
     plt.tight_layout()
-    plt.savefig(config.FIGURES / f"{nom}.png", bbox_inches="tight")
+    plt.savefig(config.FIGURES / f"{name}.png", bbox_inches="tight")
 
 
-def profil(df: pd.DataFrame, nom: str = "") -> pd.DataFrame:
+def profile(df: pd.DataFrame, name: str = "") -> pd.DataFrame:
     """Profiling table: type, missing values, distinct values, example."""
-    resultat = pd.DataFrame(
+    result = pd.DataFrame(
         {
             "type": df.dtypes.astype(str),
             "manquantes": df.isna().sum(),
@@ -45,38 +45,38 @@ def profil(df: pd.DataFrame, nom: str = "") -> pd.DataFrame:
             ],
         }
     )
-    resultat.index.name = f"colonne {nom}".strip()
-    return resultat
+    result.index.name = f"colonne {name}".strip()
+    return result
 
 
-def ecart_par_groupe(
-    df: pd.DataFrame, groupe: str, cible: str, bornes: str | None = None, n_tranches: int = 8
+def gap_by_group(
+    df: pd.DataFrame, group: str, target: str, bounds: str | None = None, n_bins: int = 8
 ) -> pd.DataFrame:
-    """Mean of `cible` per level of `groupe`, with the maximum gap.
+    """Mean of `target` per level of `group`, with the maximum gap.
 
-    If `bornes` is given, means are computed **under comparable conditions**,
+    If `bounds` is given, means are computed **under comparable conditions**,
     per bin of that continuous variable. This is what distinguishes an absence of
     mean effect from an absence of interaction.
     """
-    if bornes is None:
-        table = df.groupby(groupe, observed=True)[cible].mean().to_frame().T
+    if bounds is None:
+        table = df.groupby(group, observed=True)[target].mean().to_frame().T
     else:
-        tranches = pd.cut(df[bornes], bins=n_tranches)
+        bins = pd.cut(df[bounds], bins=n_bins)
         table = df.pivot_table(
-            index=tranches, columns=groupe, values=cible, aggfunc="mean", observed=True
+            index=bins, columns=group, values=target, aggfunc="mean", observed=True
         )
     table["ecart max"] = table.max(axis=1) - table.min(axis=1)
     return table.round(4)
 
 
-def effet_levier(df: pd.DataFrame, levier: str, groupe: str, cible: str) -> pd.DataFrame:
-    """Effect of a boolean lever on `cible`, level by level of `groupe`.
+def lever_effect(df: pd.DataFrame, lever: str, group: str, target: str) -> pd.DataFrame:
+    """Effect of a boolean lever on `target`, level by level of `group`.
 
     Also returns how much that effect varies across levels: this is the interaction
     measure, expressed in the target's unit rather than as a p-value — with a
     million rows, everything is significant, only magnitude matters.
     """
-    table = df.pivot_table(index=groupe, columns=levier, values=cible, observed=True)
+    table = df.pivot_table(index=group, columns=lever, values=target, observed=True)
     table["effet"] = table[True] - table[False]
     table.attrs["variation"] = table["effet"].max() - table["effet"].min()
     return table.round(4)

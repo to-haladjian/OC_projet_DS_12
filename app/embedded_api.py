@@ -45,9 +45,9 @@ def _free_port() -> int:
     There is a window between closing this socket and uvicorn binding it, but both ends
     live inside one container on loopback, where nothing else competes for ports.
     """
-    with socket.socket() as sonde:
-        sonde.bind((HOST, 0))
-        return sonde.getsockname()[1]
+    with socket.socket() as probe:
+        probe.bind((HOST, 0))
+        return probe.getsockname()[1]
 
 
 def _wait_until_ready(address: str, timeout: float) -> None:
@@ -64,8 +64,8 @@ def _wait_until_ready(address: str, timeout: float) -> None:
                 if answer.status == 200:
                     return
                 last = f"statut {answer.status}"
-        except (urllib.error.URLError, OSError) as erreur:
-            last = str(erreur)
+        except (urllib.error.URLError, OSError) as error:
+            last = str(error)
         time.sleep(0.5)
     raise RuntimeError(f"L'API interne n'a pas démarré en {timeout:.0f} s ({last}).")
 

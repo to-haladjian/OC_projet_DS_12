@@ -1,7 +1,7 @@
 """Serving logic, kept apart from HTTP so that it can be tested directly.
 
 Everything is loaded once, at startup, from `models/` only: the two models, their
-metadata and the serving assets written by `src.models.actifs_service`. The API never
+metadata and the serving assets written by `src.models.serving_assets`. The API never
 reads `data/`.
 
 One rule runs through this module: **an unusual input is answered, with a warning; an
@@ -26,143 +26,143 @@ import pandas as pd
 import sklearn
 from sklearn.pipeline import Pipeline
 
-from api.schemas import EntreePredict, EntreeRecommend
+from api.schemas import PredictInput, RecommendInput
 from src import config
 from src.data.crop_mapping import CROP_TO_FAO_ITEM
 from src.models import features
-from src.models import recommend_model as rm
+from src.models import yield_model as ym
 
-journal = logging.getLogger("agritech.api")
+logger = logging.getLogger("agritech.api")
 
 #: Display names of the crops.
-LIBELLES = {
+LABELS = {
     "Maize": "Maïs", "Wheat": "Blé", "Rice": "Riz",
     "Soybean": "Soja", "Barley": "Orge", "Cotton": "Coton",
 }
 
 #: Request criterion -> column of the ranking table.
-COLONNE_CRITERE = {
-    "rendement": "rendement_brut_t_ha",
-    "matiere_seche": "matiere_seche_t_ha",
-    "produit_brut": "produit_brut_usd_ha",
+CRITERION_COLUMN = {
+    "yield": "raw_yield_t_ha",
+    "dry_matter": "dry_matter_t_ha",
+    "gross_product": "gross_product_usd_ha",
 }
 
-FAO_VERS_PRODUIT = {fao: culture for culture, fao in rm.PRODUIT_VERS_FAO.items()}
+FAO_TO_PRODUCT = {fao: crop for crop, fao in ym.PRODUCT_TO_FAO.items()}
 
 #: Two-sided 95 % quantile of the Gaussian noise of `/predict`.
 Z_95 = 1.96
 
-SOURCE_SAISIE = "saisi"
+SOURCE_ENTERED = "saisi"
 
 #: Shown with every `/predict` answer: the simulated training data carry no crop effect.
-AVERTISSEMENT_CULTURE = (
+CROP_WARNING = (
     "La culture choisie ne change pas l'estimation : dans les données d'entraînement, le "
     "rendement dépend des conditions et des pratiques de la parcelle, pas de la culture."
 )
 
 
-class PaysInconnu(KeyError):
+class UnknownCountry(KeyError):
     """The requested country is not served."""
 
 
 @dataclass
-class Ressources:
+class Resources:
     """Everything the API serves, loaded once."""
 
     predict: Pipeline
     recommend: Pipeline
-    meta_predict: dict
-    meta_recommend: dict
-    contextes: dict[str, dict]
-    prix: dict
-    domaine: dict
+    practice_meta: dict
+    yield_meta: dict
+    contexts: dict[str, dict]
+    prices: dict
+    domain: dict
 
 
-def _lit_json(chemin: Path) -> dict:
-    return json.loads(chemin.read_text(encoding="utf-8"))
+def _read_json(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
-def charge_ressources(dossier: Path = config.MODELES) -> Ressources:
+def load_resources(folder: Path = config.MODELS_DIR) -> Resources:
     """Load models and assets. Fails loudly if a file is missing."""
-    with lzma.open(dossier / config.MODELE_RECOMMEND.name, "rb") as f:
+    with lzma.open(folder / config.YIELD_MODEL_PATH.name, "rb") as f:
         recommend = pickle.load(f)
-    ressources = Ressources(
-        predict=joblib.load(dossier / config.MODELE_PREDICT.name),
+    resources = Resources(
+        predict=joblib.load(folder / config.PRACTICE_MODEL_PATH.name),
         recommend=recommend,
-        meta_predict=_lit_json(dossier / "predict_model_metadata.json"),
-        meta_recommend=_lit_json(dossier / "recommend_model_metadata.json"),
-        contextes=_lit_json(dossier / "contextes_pays.json"),
-        prix=_lit_json(dossier / "prix_reference.json"),
-        domaine=_lit_json(dossier / "domaine_service.json"),
+        practice_meta=_read_json(folder / "practice_model_metadata.json"),
+        yield_meta=_read_json(folder / "yield_model_metadata.json"),
+        contexts=_read_json(folder / "country_contexts.json"),
+        prices=_read_json(folder / "reference_prices.json"),
+        domain=_read_json(folder / "serving_domain.json"),
     )
-    entrainement = ressources.domaine["scikit_learn"]
-    if entrainement != sklearn.__version__:
-        journal.warning(
+    trained_with = resources.domain["scikit_learn"]
+    if trained_with != sklearn.__version__:
+        logger.warning(
             "scikit-learn %s ici, %s a l'entrainement : les modeles peuvent mal se charger",
-            sklearn.__version__, entrainement,
+            sklearn.__version__, trained_with,
         )
-    return ressources
+    return resources
 
 
 # --------------------------------------------------------------------------- #
 # /predict
 # --------------------------------------------------------------------------- #
 
-def _hors_domaine(nom: str, valeur: float, bornes: dict[str, float], unite: str) -> str | None:
-    if bornes["min"] <= valeur <= bornes["max"]:
+def _out_of_domain(name: str, value: float, bounds: dict[str, float], unit: str) -> str | None:
+    if bounds["min"] <= value <= bounds["max"]:
         return None
     return (
-        f"{nom} = {valeur:g} {unite} est hors du domaine appris "
-        f"({bornes['min']:.0f} à {bornes['max']:.0f} {unite}) : estimation extrapolée."
+        f"{name} = {value:g} {unit} est hors du domaine appris "
+        f"({bounds['min']:.0f} à {bounds['max']:.0f} {unit}) : estimation extrapolée."
     )
 
 
-def predit(ressources: Ressources, entree: EntreePredict) -> dict:
+def predict_yield(resources: Resources, payload: PredictInput) -> dict:
     """Yield estimate for one plot, with a 95 % interval and warnings."""
-    ligne = pd.DataFrame([{
-        "Rainfall_mm": entree.pluie_mm,
-        "Temperature_Celsius": entree.temperature_c,
-        "Fertilizer_Used": float(entree.engrais),
-        "Irrigation_Used": float(entree.irrigation),
-    }])[features.PREDICT_RETENUES]
-    rendement = float(ressources.predict.predict(ligne)[0])
+    row = pd.DataFrame([{
+        "Rainfall_mm": payload.rain_mm,
+        "Temperature_Celsius": payload.temperature_c,
+        "Fertilizer_Used": float(payload.fertilizer),
+        "Irrigation_Used": float(payload.irrigation),
+    }])[features.PRACTICE_SELECTED]
+    yield_value = float(resources.predict.predict(row)[0])
 
-    bornes = ressources.domaine["predict"]["bornes"]
-    avertissements = [AVERTISSEMENT_CULTURE]
+    bounds = resources.domain["predict"]["bounds"]
+    warnings = [CROP_WARNING]
     for message in (
-        _hors_domaine("pluie", entree.pluie_mm, bornes["Rainfall_mm"], "mm"),
-        _hors_domaine("température", entree.temperature_c, bornes["Temperature_Celsius"], "°C"),
+        _out_of_domain("pluie", payload.rain_mm, bounds["Rainfall_mm"], "mm"),
+        _out_of_domain("température", payload.temperature_c, bounds["Temperature_Celsius"], "°C"),
     ):
         if message:
-            avertissements.append(message)
-    if rendement < 0:
-        avertissements.append(
+            warnings.append(message)
+    if yield_value < 0:
+        warnings.append(
             "L'estimation brute est négative, ramenée à 0 : ces conditions sont hors de ce "
             "que le modèle sait décrire."
         )
-        rendement = 0.0
+        yield_value = 0.0
 
-    demi_largeur = Z_95 * ressources.meta_predict["sigma_bruit"]
+    half_width = Z_95 * resources.practice_meta["noise_sigma"]
     return {
-        "culture": entree.culture,
-        "libelle": LIBELLES[entree.culture],
-        "rendement_t_ha": round(rendement, 3),
-        "intervalle_95_t_ha": (round(max(rendement - demi_largeur, 0.0), 3),
-                               round(rendement + demi_largeur, 3)),
-        "avertissements": avertissements,
+        "crop": payload.crop,
+        "label": LABELS[payload.crop],
+        "yield_t_ha": round(yield_value, 3),
+        "interval_95_t_ha": (round(max(yield_value - half_width, 0.0), 3),
+                               round(yield_value + half_width, 3)),
+        "warnings": warnings,
     }
 
 
-def contexte_predict(ressources: Ressources) -> dict:
+def predict_context(resources: Resources) -> dict:
     """Crops, bounds and units, for the interface."""
-    domaine = ressources.domaine["predict"]["bornes"]
+    domain = resources.domain["predict"]["bounds"]
     return {
-        "cultures": LIBELLES,
-        "bornes_physiques": {"pluie_mm": {"min": 0, "max": 5000},
+        "crops": LABELS,
+        "physical_bounds": {"rain_mm": {"min": 0, "max": 5000},
                              "temperature_c": {"min": -30, "max": 60}},
-        "domaine_entrainement": {"pluie_mm": domaine["Rainfall_mm"],
-                                 "temperature_c": domaine["Temperature_Celsius"]},
-        "unites": {"pluie_mm": "mm", "temperature_c": "°C", "rendement_t_ha": "t/ha"},
+        "learned_domain": {"rain_mm": domain["Rainfall_mm"],
+                                 "temperature_c": domain["Temperature_Celsius"]},
+        "units": {"rain_mm": "mm", "temperature_c": "°C", "yield_t_ha": "t/ha"},
     }
 
 
@@ -170,159 +170,159 @@ def contexte_predict(ressources: Ressources) -> dict:
 # /recommend
 # --------------------------------------------------------------------------- #
 
-def contexte_du_pays(ressources: Ressources, iso3: str) -> dict:
+def stored_country_context(resources: Resources, iso3: str) -> dict:
     """Stored context of a served country."""
     code = iso3.upper()
-    if code not in ressources.contextes:
-        raise PaysInconnu(
-            f"{code} n'est pas un pays servi. Liste des pays : GET /recommend/pays"
+    if code not in resources.contexts:
+        raise UnknownCountry(
+            f"{code} n'est pas un pays servi. Liste des pays : GET /recommend/countries"
         )
-    return ressources.contextes[code]
+    return resources.contexts[code]
 
 
-def prix_du_pays(ressources: Ressources, iso3: str) -> pd.DataFrame:
+def country_prices(resources: Resources, iso3: str) -> pd.DataFrame:
     """Reference prices of the ranked crops, indexed by FAO label."""
-    return pd.DataFrame(ressources.prix["pays"][iso3.upper()]).set_index("crop")
+    return pd.DataFrame(resources.prices["countries"][iso3.upper()]).set_index("crop")
 
 
-def pays_servis(ressources: Ressources) -> list[dict]:
+def served_countries(resources: Resources) -> list[dict]:
     return sorted(
-        ({"iso3": code, "nom": c["nom"]} for code, c in ressources.contextes.items()),
-        key=lambda p: p["nom"],
+        ({"iso3": code, "name": c["name"]} for code, c in resources.contexts.items()),
+        key=lambda p: p["name"],
     )
 
 
-def contexte_pays_affichable(ressources: Ressources, iso3: str) -> dict:
+def display_country_context(resources: Resources, iso3: str) -> dict:
     """A country's default values, in the units of the request."""
-    base = contexte_du_pays(ressources, iso3)
-    prix = prix_du_pays(ressources, iso3)
+    base = stored_country_context(resources, iso3)
+    prices = country_prices(resources, iso3)
     return {
         "iso3": base["iso3"],
-        "nom": base["nom"],
-        "annee": base["year"],
+        "name": base["name"],
+        "year": base["year"],
         "temperature_c": round(base["temp_hist"], 2),
-        "pluie_mm": base["rain_mm"],
+        "rain_mm": base["rain_mm"],
         "pesticides_t": round(base["pest_hist"], 1),
-        "prix": [
-            {"culture": FAO_VERS_PRODUIT[fao], "prix_usd_t": ligne.prix_usd_t,
-             "prix_source": ligne.prix_source}
-            for fao, ligne in prix.iterrows()
+        "prices": [
+            {"crop": FAO_TO_PRODUCT[fao], "price_usd_t": row.price_usd_t,
+             "price_source": row.price_source}
+            for fao, row in prices.iterrows()
         ],
-        "cultures_pratiquees": [
-            FAO_VERS_PRODUIT[fao] for fao in base["cultures_observees"] if fao in FAO_VERS_PRODUIT
+        "grown_crops": [
+            FAO_TO_PRODUCT[fao] for fao in base["observed_crops"] if fao in FAO_TO_PRODUCT
         ],
     }
 
 
-def _avertissements_domaine(ressources: Ressources, utilise: dict) -> list[str]:
+def _domain_warnings(resources: Resources, used: dict) -> list[str]:
     """One warning per variable, listing the crops for which the value is unusual."""
-    bornes = ressources.domaine["recommend"]["bornes"]
-    libelles = {"temperature_c": ("température", "°C"), "pluie_mm": ("pluie", "mm"),
+    bounds = resources.domain["recommend"]["bounds"]
+    labels = {"temperature_c": ("température", "°C"), "rain_mm": ("pluie", "mm"),
                 "pesticides_t": ("pesticides", "t")}
     messages = []
-    for champ, (nom, unite) in libelles.items():
-        valeur = utilise[champ]
-        concernees = [
-            LIBELLES[produit]
-            for produit, fao in rm.PRODUIT_VERS_FAO.items()
-            if not bornes[fao][champ]["min"] <= valeur <= bornes[fao][champ]["max"]
+    for field_name, (name, unit) in labels.items():
+        value = used[field_name]
+        affected = [
+            LABELS[product]
+            for product, fao in ym.PRODUCT_TO_FAO.items()
+            if not bounds[fao][field_name]["min"] <= value <= bounds[fao][field_name]["max"]
         ]
-        if concernees:
+        if affected:
             messages.append(
-                f"{nom} = {valeur:g} {unite} : valeur rare dans les données pour "
-                f"{', '.join(concernees)} (hors des 90 % centraux) — classement moins sûr."
+                f"{name} = {value:g} {unit} : valeur rare dans les données pour "
+                f"{', '.join(affected)} (hors des 90 % centraux) — classement moins sûr."
             )
     return messages
 
 
-def recommande(ressources: Ressources, entree: EntreeRecommend) -> dict:
+def recommend(resources: Resources, payload: RecommendInput) -> dict:
     """Rank the crops for a country, with the user's conditions and prices if given."""
-    base = contexte_du_pays(ressources, entree.iso3)
-    contexte = {v: base[v] for v in rm.VARIABLES if v != "crop"} | {"iso3": base["iso3"]}
+    base = stored_country_context(resources, payload.iso3)
+    context = {v: base[v] for v in ym.VARIABLES if v != "crop"} | {"iso3": base["iso3"]}
 
-    saisies = []
-    if entree.temperature_c is not None:
-        contexte["temp_hist"] = entree.temperature_c
-        saisies.append("temperature_c")
-    if entree.pluie_mm is not None:
-        contexte["rain_mm"] = entree.pluie_mm
-        saisies.append("pluie_mm")
+    entered_fields = []
+    if payload.temperature_c is not None:
+        context["temp_hist"] = payload.temperature_c
+        entered_fields.append("temperature_c")
+    if payload.rain_mm is not None:
+        context["rain_mm"] = payload.rain_mm
+        entered_fields.append("rain_mm")
     pesticides = base["pest_hist"]
-    if entree.pesticides_t is not None:
-        pesticides = entree.pesticides_t
-        contexte["log_pest_hist"] = float(np.log1p(pesticides))
-        saisies.append("pesticides_t")
+    if payload.pesticides_t is not None:
+        pesticides = payload.pesticides_t
+        context["log_pest_hist"] = float(np.log1p(pesticides))
+        entered_fields.append("pesticides_t")
 
-    reference = prix_du_pays(ressources, base["iso3"])
-    for produit, prix in entree.prix_usd_t.items():
-        reference.loc[rm.PRODUIT_VERS_FAO[produit]] = [prix, SOURCE_SAISIE]
-    if entree.prix_usd_t:
-        saisies.append("prix_usd_t")
+    reference = country_prices(resources, base["iso3"])
+    for product, prices in payload.price_usd_t.items():
+        reference.loc[ym.PRODUCT_TO_FAO[product]] = [prices, SOURCE_ENTERED]
+    if payload.price_usd_t:
+        entered_fields.append("price_usd_t")
 
-    table = rm.predit_cultures(ressources.recommend, contexte, rm.PRODUIT_VERS_FAO)
-    table = rm.ajoute_produit_brut(table, reference)
-    table["cultivee"] = table["culture_fao"].isin(base["cultures_observees"])
-    table = table.sort_values(COLONNE_CRITERE[entree.critere], ascending=False).reset_index(drop=True)
+    table = ym.predict_crops(resources.recommend, context, ym.PRODUCT_TO_FAO)
+    table = ym.add_gross_product(table, reference)
+    table["grown"] = table["fao_crop"].isin(base["observed_crops"])
+    table = table.sort_values(CRITERION_COLUMN[payload.criterion], ascending=False).reset_index(drop=True)
 
-    utilise = {
-        "iso3": base["iso3"], "pays": base["nom"], "annee": base["year"],
-        "temperature_c": round(contexte["temp_hist"], 2), "pluie_mm": contexte["rain_mm"],
-        "pesticides_t": round(pesticides, 1), "valeurs_saisies": saisies,
+    used = {
+        "iso3": base["iso3"], "country": base["name"], "year": base["year"],
+        "temperature_c": round(context["temp_hist"], 2), "rain_mm": context["rain_mm"],
+        "pesticides_t": round(pesticides, 1), "entered_values": entered_fields,
     }
 
-    avertissements = [
-        f"Conditions à l'échelle du pays ({base['nom']}, données {base['year']}), pas de la "
+    warnings = [
+        f"Conditions à l'échelle du pays ({base['name']}, données {base['year']}), pas de la "
         "parcelle : le classement est un ordre de grandeur.",
-        *_avertissements_domaine(ressources, utilise),
+        *_domain_warnings(resources, used),
     ]
-    non_cultivees = [LIBELLES[c] for c in table.loc[~table["cultivee"], "culture"]]
-    if non_cultivees:
-        avertissements.append(
-            f"Jamais cultivé dans ce pays : {', '.join(non_cultivees)}. "
+    not_grown = [LABELS[c] for c in table.loc[~table["grown"], "crop"]]
+    if not_grown:
+        warnings.append(
+            f"Jamais cultivé dans ce pays : {', '.join(not_grown)}. "
             "Le modèle extrapole, et la validation ne mesure pas ce cas."
         )
-    mondiaux = [LIBELLES[c] for c in table.loc[table["prix_source"] == "médiane mondiale", "culture"]]
-    if mondiaux:
-        avertissements.append(
-            f"Pas de prix national pour {', '.join(mondiaux)} : médiane mondiale FAOSTAT utilisée."
+    world_priced = [LABELS[c] for c in table.loc[table["price_source"] == "médiane mondiale", "crop"]]
+    if world_priced:
+        warnings.append(
+            f"Pas de prix national pour {', '.join(world_priced)} : médiane mondiale FAOSTAT utilisée."
         )
-    if entree.critere == "produit_brut":
-        avertissements.append(
+    if payload.criterion == "gross_product":
+        warnings.append(
             "Le produit brut (rendement x prix) n'est pas une marge : les coûts de production "
             "sont inconnus."
         )
 
     return {
-        "contexte": utilise,
-        "critere": entree.critere,
-        "classement": [
+        "context": used,
+        "criterion": payload.criterion,
+        "ranking": [
             {
-                "rang": rang,
-                "culture": ligne.culture,
-                "libelle": LIBELLES[ligne.culture],
-                "rendement_t_ha": round(ligne.rendement_brut_t_ha, 3),
-                "matiere_seche_t_ha": round(ligne.matiere_seche_t_ha, 3),
-                "groupe": ligne.groupe,
-                "prix_usd_t": round(float(ligne.prix_usd_t), 1),
-                "prix_source": ligne.prix_source,
-                "produit_brut_usd_ha": round(float(ligne.produit_brut_usd_ha), 1),
-                "cultivee_dans_le_pays": bool(ligne.cultivee),
+                "rank": rank,
+                "crop": row.crop,
+                "label": LABELS[row.crop],
+                "yield_t_ha": round(row.raw_yield_t_ha, 3),
+                "dry_matter_t_ha": round(row.dry_matter_t_ha, 3),
+                "group": row.group,
+                "price_usd_t": round(float(row.price_usd_t), 1),
+                "price_source": row.price_source,
+                "gross_product_usd_ha": round(float(row.gross_product_usd_ha), 1),
+                "grown_in_country": bool(row.grown),
             }
-            for rang, ligne in enumerate(table.itertuples(), start=1)
+            for rank, row in enumerate(table.itertuples(), start=1)
         ],
-        "cultures_non_classees": [
-            {"culture": culture, "libelle": LIBELLES[culture], "motif": motif}
-            for culture, motif in rm.CULTURES_EXCLUES.items()
+        "unranked_crops": [
+            {"crop": crop, "label": LABELS[crop], "reason": reason}
+            for crop, reason in ym.EXCLUDED_CROPS.items()
         ],
-        "avertissements": avertissements,
+        "warnings": warnings,
     }
 
 
-def _controle() -> None:
+def _check() -> None:
     """Every crop of the application has a display name."""
-    manquantes = set(CROP_TO_FAO_ITEM) - set(LIBELLES)
-    if manquantes:
-        raise ValueError(f"libelles manquants : {sorted(manquantes)}")
+    missing = set(CROP_TO_FAO_ITEM) - set(LABELS)
+    if missing:
+        raise ValueError(f"libelles manquants : {sorted(missing)}")
 
 
-_controle()
+_check()

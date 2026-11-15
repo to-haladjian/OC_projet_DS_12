@@ -35,63 +35,63 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
 from src import config
-from src.models import evaluation, features, protocole
+from src.models import evaluation, features, protocol
 
 #: Variables a one-hot encoding must handle if they are in the chosen set.
-A_ENCODER = set(features.PREDICT_CATEGORIELLES)
+TO_ENCODE = set(features.PRACTICE_CATEGORICAL)
 
 
-def charge() -> pd.DataFrame:
+def load() -> pd.DataFrame:
     """Read the consolidated dataset produced by step 1.
 
-    Delegates to `build_dataset.charge()`, which accepts either the plain CSV or the
+    Delegates to `build_dataset.load()`, which accepts either the plain CSV or the
     gzipped one — a freshly cloned repository only holds the latter.
     """
-    from src.data.build_dataset import charge_consolide
+    from src.data.build_dataset import load_consolidated
 
-    return charge_consolide()
+    return load_consolidated()
 
 
-def pipeline(modele, variables: list[str]) -> Pipeline:
+def pipeline(model, variables: list[str]) -> Pipeline:
     """Assemble preprocessing and model.
 
     Categorical variables are one-hot encoded, numeric ones left as is. The encoding is
     **inside** the pipeline: it is therefore relearned on each cross-validation fold,
     without seeing the evaluated fold.
     """
-    categorielles = [v for v in variables if v in A_ENCODER]
-    if categorielles:
+    categorical = [v for v in variables if v in TO_ENCODE]
+    if categorical:
         preparation = ColumnTransformer(
-            [("cat", OneHotEncoder(handle_unknown="ignore", sparse_output=False), categorielles)],
+            [("cat", OneHotEncoder(handle_unknown="ignore", sparse_output=False), categorical)],
             remainder="passthrough",
         )
-        return Pipeline([("preparation", preparation), ("modele", modele)])
-    return Pipeline([("modele", modele)])
+        return Pipeline([("preparation", preparation), ("model", model)])
+    return Pipeline([("model", model)])
 
 
-def matrice(df: pd.DataFrame, variables: list[str]) -> pd.DataFrame:
+def matrix(df: pd.DataFrame, variables: list[str]) -> pd.DataFrame:
     """Extract the variables, with booleans converted to 0/1."""
     X = df[variables].copy()
-    for colonne in X.columns:
-        if X[colonne].dtype == bool:
-            X[colonne] = X[colonne].astype(float)
+    for column in X.columns:
+        if X[column].dtype == bool:
+            X[column] = X[column].astype(float)
     return X
 
 
 @dataclass
-class DiagnosticResidu:
+class ResidualDiagnostic:
     """What is left after the linear model, and whether anything is still learnable."""
 
     sigma: float
-    asymetrie: float
+    skewness: float
     kurtosis: float
-    ks_statistique: float
+    ks_statistic: float
     r2_structure: float
 
     def __str__(self) -> str:
         return (
-            f"residu : sigma = {self.sigma:.5f} t/ha | asymetrie {self.asymetrie:+.4f} | "
-            f"kurtosis {self.kurtosis:+.4f} | KS D = {self.ks_statistique:.5f}\n"
+            f"residu : sigma = {self.sigma:.5f} t/ha | asymetrie {self.skewness:+.4f} | "
+            f"kurtosis {self.kurtosis:+.4f} | KS D = {self.ks_statistic:.5f}\n"
             f"structure residuelle : R2 hors echantillon d'un boosting sur le residu = "
             f"{self.r2_structure:+.5f}"
         )
@@ -99,12 +99,12 @@ class DiagnosticResidu:
 
 #: Rows used to fit the residual model. The structure test does not need the million
 #: rows, and the machine has 4 GB free; the R² is measured on the full test set.
-ECHANTILLON_RESIDU = 200_000
+RESIDUAL_SAMPLE = 200_000
 
 
-def diagnostic_residu(
-    X_app: pd.DataFrame, residu_app, X_test: pd.DataFrame, residu_test,
-) -> DiagnosticResidu:
+def residual_diagnostic(
+    X_train: pd.DataFrame, train_residual, X_test: pd.DataFrame, test_residual,
+) -> ResidualDiagnostic:
     """Test whether the linear residual still holds structure.
 
     The **non-circular** argument: a gradient boosting, free to model interactions and
@@ -117,29 +117,29 @@ def diagnostic_residu(
     noise. On their own they would prove nothing — a Gaussian-looking residual can still
     depend on X — which is why they come second.
     """
-    residu_app = pd.Series(np.asarray(residu_app), index=X_app.index)
-    residu_test = np.asarray(residu_test)
+    train_residual = pd.Series(np.asarray(train_residual), index=X_train.index)
+    test_residual = np.asarray(test_residual)
 
-    echantillon = X_app.sample(min(ECHANTILLON_RESIDU, len(X_app)), random_state=config.SEED)
-    sonde = pipeline(
-        HistGradientBoostingRegressor(random_state=config.SEED), list(X_app.columns)
-    ).fit(echantillon, residu_app.loc[echantillon.index])
-    r2_structure = float(r2_score(residu_test, sonde.predict(X_test)))
+    sample = X_train.sample(min(RESIDUAL_SAMPLE, len(X_train)), random_state=config.SEED)
+    probe = pipeline(
+        HistGradientBoostingRegressor(random_state=config.SEED), list(X_train.columns)
+    ).fit(sample, train_residual.loc[sample.index])
+    r2_structure = float(r2_score(test_residual, probe.predict(X_test)))
 
-    sigma = float(residu_test.std())
-    centre = (residu_test - residu_test.mean()) / sigma
-    return DiagnosticResidu(
+    sigma = float(test_residual.std())
+    centre = (test_residual - test_residual.mean()) / sigma
+    return ResidualDiagnostic(
         sigma=sigma,
-        asymetrie=float(stats.skew(residu_test)),
-        kurtosis=float(stats.kurtosis(residu_test)),
-        ks_statistique=float(stats.kstest(centre, "norm").statistic),
+        skewness=float(stats.skew(test_residual)),
+        kurtosis=float(stats.kurtosis(test_residual)),
+        ks_statistic=float(stats.kstest(centre, "norm").statistic),
         r2_structure=r2_structure,
     )
 
 
-def coefficients(modele: Pipeline, variables: list[str]) -> pd.DataFrame:
+def coefficients(model: Pipeline, variables: list[str]) -> pd.DataFrame:
     """Linear model coefficients, readable as effects in t/ha."""
-    regression = modele.named_steps["modele"]
+    regression = model.named_steps["model"]
     table = pd.DataFrame({"variable": variables, "coefficient": regression.coef_})
     table.loc[len(table)] = ["(constante)", regression.intercept_]
     return table
@@ -148,7 +148,7 @@ def coefficients(modele: Pipeline, variables: list[str]) -> pd.DataFrame:
 #: Generator effects, recovered in step 2. The check below verifies that the retrained
 #: model still recovers them: it is a safeguard against a silent regression of the
 #: pipeline or the data.
-GENERATEUR = {
+GENERATOR = {
     "Rainfall_mm": 0.005,
     "Temperature_Celsius": 0.0199,
     "Fertilizer_Used": 1.5007,
@@ -156,105 +156,105 @@ GENERATEUR = {
 }
 
 
-def controle_generateur(modele: Pipeline, variables: list[str], tolerance: float = 0.02) -> None:
+def check_generator(model: Pipeline, variables: list[str], tolerance: float = 0.02) -> None:
     """Check that the coefficients recover the generator, within relative `tolerance`."""
-    obtenus = dict(zip(variables, modele.named_steps["modele"].coef_))
-    for nom, attendu in GENERATEUR.items():
-        if nom not in obtenus:
+    recovered = dict(zip(variables, model.named_steps["model"].coef_))
+    for name, expected in GENERATOR.items():
+        if name not in recovered:
             continue
-        ecart = abs(obtenus[nom] - attendu) / abs(attendu)
-        if ecart > tolerance:
+        gap = abs(recovered[name] - expected) / abs(expected)
+        if gap > tolerance:
             raise AssertionError(
-                f"{nom} : coefficient {obtenus[nom]:.5f} au lieu de {attendu} "
-                f"({ecart:.1%} d'ecart)"
+                f"{name} : coefficient {recovered[name]:.5f} au lieu de {expected} "
+                f"({gap:.1%} d'ecart)"
             )
 
 
-def entraine(df: pd.DataFrame | None = None, verbeux: bool = True) -> dict:
+def train(df: pd.DataFrame | None = None, verbose: bool = True) -> dict:
     """Train the served model and evaluate it once on the test set.
 
     The test set is the one from the frozen split: it served no choice of model,
     variable or tuning.
     """
-    df = charge() if df is None else df
-    variables = features.PREDICT_RETENUES
+    df = load() if df is None else df
+    variables = features.PRACTICE_SELECTED
     # Every column the residual test may use; the split is the same whatever the columns.
-    toutes = features.PREDICT_JEUX["toutes"]
-    X_app, X_test, y_app, y_test = protocole.decoupage_aleatoire(
-        df.assign(**{c: df[c].astype(float) for c in toutes if df[c].dtype == bool}),
-        toutes, features.CIBLE_PREDICT,
+    all_vars = features.PRACTICE_FEATURE_SETS["all"]
+    X_train, X_test, y_train, y_test = protocol.random_split(
+        df.assign(**{c: df[c].astype(float) for c in all_vars if df[c].dtype == bool}),
+        all_vars, features.PRACTICE_TARGET,
     )
 
-    modele = pipeline(LinearRegression(), variables).fit(X_app[variables], y_app)
-    controle_generateur(modele, variables)
+    model = pipeline(LinearRegression(), variables).fit(X_train[variables], y_train)
+    check_generator(model, variables)
 
-    predictions_app = modele.predict(X_app[variables])
-    predictions_test = modele.predict(X_test[variables])
-    scores = evaluation.metriques(y_test, predictions_test, "test")
-    scores |= evaluation.metriques(y_app, predictions_app, "train")
-    diagnostic = diagnostic_residu(
-        X_app, y_app - predictions_app, X_test, y_test - predictions_test
+    train_predictions = model.predict(X_train[variables])
+    test_predictions = model.predict(X_test[variables])
+    scores = evaluation.metrics(y_test, test_predictions, "test")
+    scores |= evaluation.metrics(y_train, train_predictions, "train")
+    diagnostic = residual_diagnostic(
+        X_train, y_train - train_predictions, X_test, y_test - test_predictions
     )
 
-    if verbeux:
-        print(coefficients(modele, variables).to_string(index=False))
+    if verbose:
+        print(coefficients(model, variables).to_string(index=False))
         print()
         print(diagnostic)
         print(f"R2 mesure hors echantillon = {scores['test_r2']:.5f}")
 
     return {
-        "modele": modele,
+        "model": model,
         "variables": variables,
         "scores": scores,
         "diagnostic": diagnostic,
-        "n_apprentissage": len(X_app),
+        "n_train": len(X_train),
         "n_test": len(X_test),
     }
 
 
-def sauvegarde(resultat: dict) -> None:
+def save(result: dict) -> None:
     """Save the pipeline and its metadata.
 
     The metadata carries what the step 3 API needs: expected variables, training domain
     bounds, reference scores, and the explicit statement that the estimate **does not
     depend on the crop**.
     """
-    config.MODELES.mkdir(parents=True, exist_ok=True)
-    joblib.dump(resultat["modele"], config.MODELE_PREDICT, compress=3)
+    config.MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    joblib.dump(result["model"], config.PRACTICE_MODEL_PATH, compress=3)
 
-    diagnostic = resultat["diagnostic"]
-    metadonnees = {
+    diagnostic = result["diagnostic"]
+    metadata = {
         "service": "predict",
-        "modele": "LinearRegression",
-        "variables": resultat["variables"],
-        "cible": features.CIBLE_PREDICT,
-        "unite": "t/ha",
+        "model": "LinearRegression",
+        "variables": result["variables"],
+        "target": features.PRACTICE_TARGET,
+        "unit": "t/ha",
         "seed": config.SEED,
-        "n_apprentissage": resultat["n_apprentissage"],
-        "n_test": resultat["n_test"],
-        "scores": resultat["scores"],
-        "sigma_bruit": diagnostic.sigma,
-        "r2_structure_residuelle": diagnostic.r2_structure,
+        "n_train": result["n_train"],
+        "n_test": result["n_test"],
+        "scores": result["scores"],
+        "noise_sigma": diagnostic.sigma,
+        "residual_structure_r2": diagnostic.r2_structure,
         "coefficients": dict(
-            zip(resultat["variables"], resultat["modele"].named_steps["modele"].coef_.tolist())
+            zip(result["variables"], result["model"].named_steps["model"].coef_.tolist())
         ),
-        "constante": float(resultat["modele"].named_steps["modele"].intercept_),
-        "avertissement": (
+        "intercept": float(result["model"].named_steps["model"].intercept_),
+        "warning": (
             "L'estimation decrit les conditions et les pratiques de la parcelle, pas la "
             "culture semee : dans ce jeu de donnees la culture n'a aucun effet mesurable "
             "sur le rendement. La reponse du service doit le signaler."
         ),
     }
-    chemin = config.MODELES / "predict_model_metadata.json"
-    chemin.write_text(json.dumps(metadonnees, indent=2, ensure_ascii=False), encoding="utf-8")
+    path = config.MODELS_DIR / "practice_model_metadata.json"
+    path.write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 def main() -> None:
-    resultat = entraine()
-    sauvegarde(resultat)
-    taille = config.MODELE_PREDICT.stat().st_size / 1024
-    print(f"\necrit {config.MODELE_PREDICT.relative_to(config.RACINE)} ({taille:.1f} Ko)")
-    print(f"ecrit models/predict_model_metadata.json")
+    result = train()
+    save(result)
+    size_mb = config.PRACTICE_MODEL_PATH.stat().st_size / 1024
+    print(f"\necrit {config.PRACTICE_MODEL_PATH.relative_to(config.ROOT)} ({size_mb:.1f} Ko)")
+    print(f"ecrit models/practice_model_metadata.json")
 
 
 if __name__ == "__main__":

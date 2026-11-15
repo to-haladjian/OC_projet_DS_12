@@ -31,7 +31,7 @@ SCORES = {
 }
 
 
-def validation_par_pli(modele, X, y, cv) -> pd.DataFrame:
+def validate_by_fold(model, X, y, cv) -> pd.DataFrame:
     """Cross-validation keeping the **per-fold detail**.
 
     `cross_validate` refits a copy of the model on each fold: preprocessing placed in
@@ -40,32 +40,32 @@ def validation_par_pli(modele, X, y, cv) -> pd.DataFrame:
     The per-fold detail is what makes the paired comparison possible; a mean alone
     would not allow it.
     """
-    scores = cross_validate(modele, X, y, cv=cv, scoring=SCORES, error_score="raise")
-    plis = pd.DataFrame(
+    scores = cross_validate(model, X, y, cv=cv, scoring=SCORES, error_score="raise")
+    folds = pd.DataFrame(
         {
             # "test" here means the validation fold, not the project's test set
             "rmse": -scores["test_rmse"],
             "mae": -scores["test_mae"],
             "r2": scores["test_r2"],
-            "duree_ajustement": scores["fit_time"],
+            "fit_seconds": scores["fit_time"],
         }
     )
-    plis.index = pd.RangeIndex(1, len(plis) + 1, name="pli")
-    return plis
+    folds.index = pd.RangeIndex(1, len(folds) + 1, name="fold")
+    return folds
 
 
-def resume(plis: pd.DataFrame) -> dict[str, float]:
+def summarise(folds: pd.DataFrame) -> dict[str, float]:
     """Per-fold means and standard deviations, named like the MLflow metrics."""
-    metriques = {}
-    for nom in ("rmse", "mae", "r2"):
-        valeurs = plis[nom].to_numpy()
-        metriques[f"cv_{nom}_mean"] = float(valeurs.mean())
-        metriques[f"cv_{nom}_std"] = float(valeurs.std())
-    return metriques
+    metrics = {}
+    for name in ("rmse", "mae", "r2"):
+        values = folds[name].to_numpy()
+        metrics[f"cv_{name}_mean"] = float(values.mean())
+        metrics[f"cv_{name}_std"] = float(values.std())
+    return metrics
 
 
-def compare_appariee(
-    resultats: dict[str, pd.DataFrame], reference: str, libelles: list | None = None
+def compare_paired(
+    results: dict[str, pd.DataFrame], reference: str, labels: list | None = None
 ) -> pd.DataFrame:
     """Compare several evaluations **fold by fold**, on the same folds.
 
@@ -74,31 +74,31 @@ def compare_appariee(
     that wins on average but on a single fold has won nothing.
 
     The standard deviation across folds is deliberately absent (see the module header).
-    `libelles` — for example the validation years — adds each fold's RMSE, to see
+    `labels` — for example the validation years — adds each fold's RMSE, to see
     whether a gap holds everywhere or comes from a single year.
     """
-    rmse_reference = resultats[reference]["rmse"].to_numpy()
-    if libelles is not None and len(libelles) != len(rmse_reference):
+    rmse_reference = results[reference]["rmse"].to_numpy()
+    if labels is not None and len(labels) != len(rmse_reference):
         raise ValueError("un libelle par pli est attendu")
 
-    lignes = {}
-    for nom, plis in resultats.items():
-        if len(plis) != len(rmse_reference):
-            raise ValueError(f"{nom} : {len(plis)} plis, {len(rmse_reference)} pour la reference")
-        ecarts = plis["rmse"].to_numpy() - rmse_reference
-        lignes[nom] = {
-            "RMSE": plis["rmse"].mean(),
-            "MAE": plis["mae"].mean(),
-            "R2": plis["r2"].mean(),
-            "ecart a la reference": ecarts.mean(),
-            "plis ameliores": f"{int((ecarts < 0).sum())}/{len(ecarts)}",
+    rows = {}
+    for name, folds in results.items():
+        if len(folds) != len(rmse_reference):
+            raise ValueError(f"{name} : {len(folds)} plis, {len(rmse_reference)} pour la reference")
+        gaps = folds["rmse"].to_numpy() - rmse_reference
+        rows[name] = {
+            "RMSE": folds["rmse"].mean(),
+            "MAE": folds["mae"].mean(),
+            "R2": folds["r2"].mean(),
+            "ecart a la reference": gaps.mean(),
+            "plis ameliores": f"{int((gaps < 0).sum())}/{len(gaps)}",
         }
-        if libelles is not None:
-            lignes[nom] |= dict(zip(libelles, plis["rmse"].to_numpy().round(4)))
-    return pd.DataFrame.from_dict(lignes, orient="index")
+        if labels is not None:
+            rows[name] |= dict(zip(labels, folds["rmse"].to_numpy().round(4)))
+    return pd.DataFrame.from_dict(rows, orient="index")
 
 
-def predictions_hors_apprentissage(modele, X: pd.DataFrame, y: pd.Series, plis) -> pd.Series:
+def out_of_fold_predictions(model, X: pd.DataFrame, y: pd.Series, folds) -> pd.Series:
     """Out-of-fold predictions, even when the folds do not cover everything.
 
     `cross_val_predict` requires every row to belong to a validation fold. In temporal
@@ -108,23 +108,23 @@ def predictions_hors_apprentissage(modele, X: pd.DataFrame, y: pd.Series, plis) 
 
     A row evaluated in two folds raises an error: one prediction per row.
     """
-    plis = plis.split(X, y) if hasattr(plis, "split") else plis
+    folds = folds.split(X, y) if hasattr(folds, "split") else folds
 
-    morceaux = []
-    for positions_app, positions_val in plis:
-        ajuste = clone(modele).fit(X.iloc[positions_app], y.iloc[positions_app])
+    chunks = []
+    for train_positions, positions_val in folds:
+        fitted = clone(model).fit(X.iloc[train_positions], y.iloc[train_positions])
         validation = X.iloc[positions_val]
-        morceaux.append(
-            pd.Series(ajuste.predict(validation), index=validation.index, name="prediction")
+        chunks.append(
+            pd.Series(fitted.predict(validation), index=validation.index, name="prediction")
         )
 
-    predictions = pd.concat(morceaux)
+    predictions = pd.concat(chunks)
     if predictions.index.has_duplicates:
         raise AssertionError("une ligne est evaluee dans plusieurs plis")
     return predictions
 
 
-def erreurs_par_culture(y_observe, y_predit, cultures) -> pd.DataFrame:
+def errors_by_crop(y_observed, y_predicted, crops) -> pd.DataFrame:
     """Crop-by-crop error, with an **RMSE relative** to the yield level.
 
     Yields range from 1.3 to 16 t/ha depending on the crop: only the RMSE divided by
@@ -132,36 +132,36 @@ def erreurs_par_culture(y_observe, y_predit, cultures) -> pd.DataFrame:
     whether the model systematically over- or underestimates a crop.
     """
     table = pd.DataFrame(
-        {"culture": list(cultures), "observe": list(y_observe), "predit": list(y_predit)}
+        {"crop": list(crops), "observed": list(y_observed), "predicted": list(y_predicted)}
     )
     if table.empty or table.isna().any().any():
         raise ValueError("entrees vides ou comportant des valeurs manquantes")
-    table["erreur"] = table["predit"] - table["observe"]
+    table["error"] = table["predicted"] - table["observed"]
 
-    par_culture = table.groupby("culture")
-    resultat = pd.DataFrame(
+    by_crop = table.groupby("crop")
+    result = pd.DataFrame(
         {
-            "n": par_culture.size(),
-            "rendement moyen": par_culture["observe"].mean(),
-            "RMSE": par_culture["erreur"].apply(lambda e: float((e**2).mean() ** 0.5)),
-            "MAE": par_culture["erreur"].apply(lambda e: float(e.abs().mean())),
-            "biais": par_culture["erreur"].mean(),
+            "n": by_crop.size(),
+            "rendement moyen": by_crop["observed"].mean(),
+            "RMSE": by_crop["error"].apply(lambda e: float((e**2).mean() ** 0.5)),
+            "MAE": by_crop["error"].apply(lambda e: float(e.abs().mean())),
+            "biais": by_crop["error"].mean(),
         }
     )
-    resultat["RMSE relative"] = resultat["RMSE"] / resultat["rendement moyen"]
-    return resultat.sort_values("rendement moyen")
+    result["RMSE relative"] = result["RMSE"] / result["rendement moyen"]
+    return result.sort_values("rendement moyen")
 
 
-def metriques(y_observe, y_predit, prefixe: str = "test") -> dict[str, float]:
+def metrics(y_observed, y_predicted, prefix: str = "test") -> dict[str, float]:
     """RMSE, MAE and R² on a given set. Reserved for the final evaluation."""
     return {
-        f"{prefixe}_rmse": float(root_mean_squared_error(y_observe, y_predit)),
-        f"{prefixe}_mae": float(mean_absolute_error(y_observe, y_predit)),
-        f"{prefixe}_r2": float(r2_score(y_observe, y_predit)),
+        f"{prefix}_rmse": float(root_mean_squared_error(y_observed, y_predicted)),
+        f"{prefix}_mae": float(mean_absolute_error(y_observed, y_predicted)),
+        f"{prefix}_r2": float(r2_score(y_observed, y_predicted)),
     }
 
 
-def ligne_lisible(m: dict[str, float]) -> str:
+def readable_line(m: dict[str, float]) -> str:
     """A one-line summary: `RMSE 0,4993 ± 0,0006 t/ha | MAE ... | R² ...`."""
     return (
         f"RMSE {m['cv_rmse_mean']:.4f} ± {m['cv_rmse_std']:.4f} t/ha"
@@ -174,9 +174,9 @@ def ligne_lisible(m: dict[str, float]) -> str:
 # Metrics specific to a ranking task
 # --------------------------------------------------------------------------- #
 
-def qualite_classement(
-    observe: pd.DataFrame, predit: pd.Series, groupe: list[str] | None = None,
-    colonne_culture: str = "crop", colonne_cible: str = "yield_t_ha",
+def ranking_quality(
+    observed: pd.DataFrame, predicted: pd.Series, group: list[str] | None = None,
+    crop_column: str = "crop", target_column: str = "yield_t_ha",
 ) -> dict[str, float]:
     """Quality of the crop **ranking**, within each country-year.
 
@@ -187,43 +187,43 @@ def qualite_classement(
     * `top3`: is the best observed crop among the first three?
     * `spearman`: rank correlation between predicted and observed rankings.
 
-    And what a wrong first place **costs**, in the unit of `colonne_cible`:
+    And what a wrong first place **costs**, in the unit of `target_column`:
 
     * `regret`: observed value of the best crop minus observed value of the crop
       ranked first, averaged over groups — zero when the first place is right;
-    * `regret_relatif`: the same gap divided by the best observed value. With a gross
+    * `relative_regret`: the same gap divided by the best observed value. With a gross
       product target, this is the share of revenue lost by following the ranking.
     """
-    groupe = groupe or ["iso3", "year"]
-    table = observe[groupe + [colonne_culture, colonne_cible]].copy()
-    table["predit"] = predit.to_numpy()
+    group = group or ["iso3", "year"]
+    table = observed[group + [crop_column, target_column]].copy()
+    table["predicted"] = predicted.to_numpy()
 
-    top1, top3, rhos, regrets, regrets_relatifs = [], [], [], [], []
-    for _, bloc in table.groupby(groupe):
-        if len(bloc) < 2:
+    top1, top3, rhos, regrets, relative_regrets = [], [], [], [], []
+    for _, block in table.groupby(group):
+        if len(block) < 2:
             continue
-        meilleure = bloc[colonne_cible].max()
-        meilleure_observee = bloc.loc[bloc[colonne_cible].idxmax(), colonne_culture]
-        ordre_predit = bloc.sort_values("predit", ascending=False)
-        cultures_predites = ordre_predit[colonne_culture].tolist()
-        top1.append(cultures_predites[0] == meilleure_observee)
-        top3.append(meilleure_observee in cultures_predites[:3])
-        regret = meilleure - ordre_predit[colonne_cible].iloc[0]
+        best_value = block[target_column].max()
+        best_observed = block.loc[block[target_column].idxmax(), crop_column]
+        predicted_order = block.sort_values("predicted", ascending=False)
+        predicted_crops = predicted_order[crop_column].tolist()
+        top1.append(predicted_crops[0] == best_observed)
+        top3.append(best_observed in predicted_crops[:3])
+        regret = best_value - predicted_order[target_column].iloc[0]
         regrets.append(regret)
-        regrets_relatifs.append(regret / meilleure if meilleure > 0 else 0.0)
-        if len(bloc) >= 3:
-            rho = bloc[colonne_cible].corr(bloc["predit"], method="spearman")
+        relative_regrets.append(regret / best_value if best_value > 0 else 0.0)
+        if len(block) >= 3:
+            rho = block[target_column].corr(block["predicted"], method="spearman")
             if not np.isnan(rho):
                 rhos.append(rho)
 
-    def moyenne(valeurs):
-        return float(np.mean(valeurs)) if valeurs else float("nan")
+    def mean_of(values):
+        return float(np.mean(values)) if values else float("nan")
 
     return {
-        "top1": moyenne(top1),
-        "top3": moyenne(top3),
-        "spearman": moyenne(rhos),
-        "regret": moyenne(regrets),
-        "regret_relatif": moyenne(regrets_relatifs),
-        "groupes": len(top1),
+        "top1": mean_of(top1),
+        "top3": mean_of(top3),
+        "spearman": mean_of(rhos),
+        "regret": mean_of(regrets),
+        "relative_regret": mean_of(relative_regrets),
+        "groups": len(top1),
     }

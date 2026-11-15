@@ -21,81 +21,81 @@ import pandas as pd
 
 from src import config
 from src.data import geo
-from src.data.rapport import Rapport
+from src.data.prep_log import PrepLog
 
 #: Key of an observation in the rebuilt dataset.
-CLE = ["iso3", "year", "crop"]
+KEY = ["iso3", "year", "crop"]
 
 #: FAO aggregate including Taiwan, Hong Kong and Macao. The three explanatory sources
 #: only describe mainland China, already present as `China, mainland`:
 #: keeping both would duplicate it over a different scope.
-AGREGAT_CHINE = "China"
+CHINA_AGGREGATE = "China"
 
 
-def _ajoute_iso3(df: pd.DataFrame, colonne_pays: str) -> pd.DataFrame:
+def _add_iso3(df: pd.DataFrame, country_column: str) -> pd.DataFrame:
     """Add an `iso3` column derived from the country name."""
-    correspondances = geo.vers_iso3(df[colonne_pays].astype(str).unique())
-    return df.assign(iso3=df[colonne_pays].astype(str).map(correspondances))
+    matches = geo.to_iso3(df[country_column].astype(str).unique())
+    return df.assign(iso3=df[country_column].astype(str).map(matches))
 
 
-def charge_sources() -> dict[str, pd.DataFrame]:
+def load_sources() -> dict[str, pd.DataFrame]:
     """Read the four raw files without any transformation."""
-    pluie = pd.read_csv(config.SOURCE_PLUIE)
+    rain = pd.read_csv(config.SOURCE_RAIN)
     # The country column header starts with a space in this file.
-    pluie.columns = pluie.columns.str.strip()
+    rain.columns = rain.columns.str.strip()
     return {
-        "rendement": pd.read_csv(config.SOURCE_RENDEMENT),
+        "rendement": pd.read_csv(config.SOURCE_YIELD),
         "temperature": pd.read_csv(config.SOURCE_TEMPERATURE),
-        "pluie": pluie,
+        "pluie": rain,
         "pesticides": pd.read_csv(config.SOURCE_PESTICIDES),
     }
 
 
-def _periode(df: pd.DataFrame, colonne: str) -> pd.DataFrame:
-    return df[df[colonne].between(config.ANNEE_DEBUT, config.ANNEE_FIN)]
+def _period(df: pd.DataFrame, column: str) -> pd.DataFrame:
+    return df[df[column].between(config.START_YEAR, config.END_YEAR)]
 
 
-def prepare_rendement(df: pd.DataFrame) -> tuple[pd.DataFrame, Rapport]:
+def prepare_yield(df: pd.DataFrame) -> tuple[pd.DataFrame, PrepLog]:
     """Yield per country, year and crop, converted to tonnes per hectare."""
-    rapport = Rapport()
-    n_depart = len(df)
+    prep_log = PrepLog()
+    n_start = len(df)
 
-    sans_agregat = df[df["Area"] != AGREGAT_CHINE]
-    rapport.ajoute(
+    without_aggregate = df[df["Area"] != CHINA_AGGREGATE]
+    prep_log.add(
         "agregat Chine",
-        f"{n_depart - len(sans_agregat)} lignes `{AGREGAT_CHINE}` ecartees "
+        f"{n_start - len(without_aggregate)} lignes `{CHINA_AGGREGATE}` ecartees "
         "au profit de `China, mainland`",
     )
 
     out = (
-        _periode(sans_agregat, "Year")
-        .pipe(_ajoute_iso3, "Area")
+        _period(without_aggregate, "Year")
+        .pipe(_add_iso3, "Area")
         .rename(columns={"Area": "area", "Year": "year", "Item": "crop"})
         .assign(yield_t_ha=lambda d: d["Value"] / 10_000)
         .loc[:, ["iso3", "area", "year", "crop", "yield_t_ha"]]
     )
-    rapport.ajoute("unite", "hg/ha -> t/ha (division par 10 000)")
+    prep_log.add("unite", "hg/ha -> t/ha (division par 10 000)")
 
-    sans_code = out["iso3"].isna().sum()
+    without_code = out["iso3"].isna().sum()
     out = out.dropna(subset=["iso3"])
-    rapport.ajoute(
+    prep_log.add(
         "sans ISO3",
-        f"{sans_code} lignes ecartees (entites historiques : URSS, Tchecoslovaquie, "
+        f"{without_code} lignes ecartees (entites historiques : URSS, Tchecoslovaquie, "
         "Belgique-Luxembourg, Yougoslavie, Serbie-et-Montenegro, Soudan ex)",
     )
 
     # Two distinct labels may point to the same country: we settle it with the mean.
-    doublons = int(out.duplicated(CLE).sum())
-    if doublons:
-        out = out.groupby(CLE, as_index=False).agg(
+    duplicates = int(out.duplicated(KEY).sum())
+    if duplicates:
+        out = out.groupby(KEY, as_index=False).agg(
             area=("area", "first"), yield_t_ha=("yield_t_ha", "mean")
         )
-    rapport.ajoute("doublons sur la cle", f"{doublons} resolus par moyenne")
-    rapport.ajoute("lignes", f"{n_depart:,} -> {len(out):,}")
-    return out.reset_index(drop=True), rapport
+    prep_log.add("doublons sur la cle", f"{duplicates} resolus par moyenne")
+    prep_log.add("lignes", f"{n_start:,} -> {len(out):,}")
+    return out.reset_index(drop=True), prep_log
 
 
-def prepare_temperature(df: pd.DataFrame) -> tuple[pd.DataFrame, Rapport]:
+def prepare_temperature(df: pd.DataFrame) -> tuple[pd.DataFrame, PrepLog]:
     """Mean temperature per country and year.
 
     This is the source of the `yield_df.csv` fan-out: up to 41 readings for a single
@@ -103,34 +103,34 @@ def prepare_temperature(df: pd.DataFrame) -> tuple[pd.DataFrame, Rapport]:
     average — without geographic weighting, for lack of metadata to tell the
     stations apart.
     """
-    rapport = Rapport()
-    n_depart = len(df)
+    prep_log = PrepLog()
+    n_start = len(df)
 
-    stricts = df.drop_duplicates()
-    rapport.ajoute("doublons stricts", f"{n_depart - len(stricts)} lignes retirees")
+    strict = df.drop_duplicates()
+    prep_log.add("doublons stricts", f"{n_start - len(strict)} lignes retirees")
 
-    vides = int(stricts["avg_temp"].isna().sum())
-    renseignes = stricts.dropna(subset=["avg_temp"])
-    rapport.ajoute("releves vides", f"{vides} lignes sans temperature ecartees")
+    n_empty = int(strict["avg_temp"].isna().sum())
+    filled_rows = strict.dropna(subset=["avg_temp"])
+    prep_log.add("releves vides", f"{n_empty} lignes sans temperature ecartees")
 
-    avant_agregation = _periode(renseignes, "year").pipe(_ajoute_iso3, "country")
-    max_releves = int(avant_agregation.groupby(["iso3", "year"]).size().max())
-    rapport.ajoute(
+    before_aggregation = _period(filled_rows, "year").pipe(_add_iso3, "country")
+    max_readings = int(before_aggregation.groupby(["iso3", "year"]).size().max())
+    prep_log.add(
         "releves par pays-annee",
-        f"jusqu'a {max_releves} — c'est ce fan-out qui corrompt `yield_df.csv`",
+        f"jusqu'a {max_readings} — c'est ce fan-out qui corrompt `yield_df.csv`",
     )
 
     out = (
-        avant_agregation.dropna(subset=["iso3"])
+        before_aggregation.dropna(subset=["iso3"])
         .groupby(["iso3", "year"], as_index=False)["avg_temp"]
         .mean()
     )
-    rapport.ajoute("agregation", "moyenne des releves par pays-annee")
-    rapport.ajoute("lignes", f"{n_depart:,} -> {len(out):,}")
-    return out, rapport
+    prep_log.add("agregation", "moyenne des releves par pays-annee")
+    prep_log.add("lignes", f"{n_start:,} -> {len(out):,}")
+    return out, prep_log
 
 
-def prepare_pluie(df: pd.DataFrame) -> tuple[pd.DataFrame, Rapport]:
+def prepare_rain(df: pd.DataFrame) -> tuple[pd.DataFrame, PrepLog]:
     """Rainfall per country, represented as the national constant it is.
 
     `rainfall.csv` does not provide a yearly measurement but a **climate normal that
@@ -148,128 +148,128 @@ def prepare_pluie(df: pd.DataFrame) -> tuple[pd.DataFrame, Rapport]:
        majority winning over the accident.
 
     One defect remains that the median does not fix: eleven countries whose whole
-    series is copied from the preceding country (see :data:`geo.PLUIE_NON_FIABLE`).
+    series is copied from the preceding country (see :data:`geo.UNRELIABLE_RAIN`).
     Their `rain_mm` is set to `NaN`: the whole series is wrong, there is nothing to keep.
 
     The mode is computed over **the whole file**, 1985-2017, not only over the
     retained period: more years make the majority value more reliable.
     """
-    rapport = Rapport()
-    n_depart = len(df)
+    prep_log = PrepLog()
+    n_start = len(df)
 
-    converti = df.assign(
+    converted = df.assign(
         rain_mm=pd.to_numeric(df["average_rain_fall_mm_per_year"], errors="coerce")
     )
-    non_numeriques = int(converti["rain_mm"].isna().sum())
-    rapport.ajoute("conversion", f"{non_numeriques} valeurs non numeriques ou vides -> NaN")
+    non_numeric = int(converted["rain_mm"].isna().sum())
+    prep_log.add("conversion", f"{non_numeric} valeurs non numeriques ou vides -> NaN")
 
-    renseigne = (
-        _ajoute_iso3(converti, "Area").dropna(subset=["iso3", "rain_mm"])
+    filled = (
+        _add_iso3(converted, "Area").dropna(subset=["iso3", "rain_mm"])
     )
 
     # One value per country: the modal one. Countries with several values are those
     # with an aberrant year; the mode fixes them.
-    valeurs_distinctes = renseigne.groupby("iso3")["rain_mm"].nunique()
-    repares = sorted(valeurs_distinctes[valeurs_distinctes > 1].index)
-    modes = renseigne.groupby("iso3")["rain_mm"].agg(lambda s: s.mode().iloc[0])
-    rapport.ajoute(
+    distinct_values = filled.groupby("iso3")["rain_mm"].nunique()
+    repaired = sorted(distinct_values[distinct_values > 1].index)
+    modes = filled.groupby("iso3")["rain_mm"].agg(lambda s: s.mode().iloc[0])
+    prep_log.add(
         "annees aberrantes",
-        f"{len(repares)} pays a plusieurs valeurs ({', '.join(repares)}) "
+        f"{len(repaired)} pays a plusieurs valeurs ({', '.join(repaired)}) "
         "-> valeur modale retenue",
     )
 
-    ecartes = sorted(set(modes.index) & geo.PLUIE_NON_FIABLE)
-    modes = modes.drop(index=ecartes)
-    rapport.ajoute(
+    discarded = sorted(set(modes.index) & geo.UNRELIABLE_RAIN)
+    modes = modes.drop(index=discarded)
+    prep_log.add(
         "series non fiables",
-        f"{len(ecartes)} pays ecartes ({', '.join(ecartes)}) : serie entiere copiee "
+        f"{len(discarded)} pays ecartes ({', '.join(discarded)}) : serie entiere copiee "
         "du pays alphabetiquement precedent",
     )
 
-    annees = range(config.ANNEE_DEBUT, config.ANNEE_FIN + 1)
+    years = range(config.START_YEAR, config.END_YEAR + 1)
     out = pd.DataFrame(
-        [{"iso3": iso3, "year": annee, "rain_mm": valeur}
-         for iso3, valeur in modes.items() for annee in annees]
+        [{"iso3": iso3, "year": year, "rain_mm": value}
+         for iso3, value in modes.items() for year in years]
     )
-    rapport.ajoute(
+    prep_log.add(
         "diffusion",
-        f"1 valeur x {len(modes)} pays x {len(annees)} annees -> aucun trou, 2003 comprise",
+        f"1 valeur x {len(modes)} pays x {len(years)} annees -> aucun trou, 2003 comprise",
     )
-    rapport.ajoute("lignes", f"{n_depart:,} -> {len(out):,}")
-    return out, rapport
+    prep_log.add("lignes", f"{n_start:,} -> {len(out):,}")
+    return out, prep_log
 
 
-def prepare_pesticides(df: pd.DataFrame) -> tuple[pd.DataFrame, Rapport]:
+def prepare_pesticides(df: pd.DataFrame) -> tuple[pd.DataFrame, PrepLog]:
     """Total pesticide use per country and year, in tonnes of active ingredient."""
-    rapport = Rapport()
-    n_depart = len(df)
+    prep_log = PrepLog()
+    n_start = len(df)
 
     out = (
-        _periode(df, "Year")
-        .pipe(_ajoute_iso3, "Area")
+        _period(df, "Year")
+        .pipe(_add_iso3, "Area")
         .dropna(subset=["iso3"])
         .rename(columns={"Year": "year", "Value": "pesticides_t"})
         .groupby(["iso3", "year"], as_index=False)["pesticides_t"]
         .mean()
     )
-    rapport.ajoute("lignes", f"{n_depart:,} -> {len(out):,}")
-    return out, rapport
+    prep_log.add("lignes", f"{n_start:,} -> {len(out):,}")
+    return out, prep_log
 
 
-def controle_avant_fusion(sources: dict[str, tuple[pd.DataFrame, list[str]]]) -> pd.DataFrame:
+def check_before_merge(sources: dict[str, tuple[pd.DataFrame, list[str]]]) -> pd.DataFrame:
     """Check that each source is unique on its key, before any join."""
-    lignes = []
-    for nom, (df, cle) in sources.items():
-        doublons = int(df.duplicated(cle).sum())
-        lignes.append(
+    rows = []
+    for name, (df, key) in sources.items():
+        duplicates = int(df.duplicated(key).sum())
+        rows.append(
             {
-                "source": nom,
+                "source": name,
                 "lignes": len(df),
                 "pays": df["iso3"].nunique(),
-                "cle": " + ".join(cle),
-                "doublons": doublons,
+                "cle": " + ".join(key),
+                "doublons": duplicates,
             }
         )
-        if doublons:
-            raise AssertionError(f"{nom} : la cle {cle} n'est pas unique ({doublons})")
-    return pd.DataFrame(lignes)
+        if duplicates:
+            raise AssertionError(f"{name} : la cle {key} n'est pas unique ({duplicates})")
+    return pd.DataFrame(rows)
 
 
-def fusionne(
-    rendement: pd.DataFrame,
+def merge_sources(
+    yield_value: pd.DataFrame,
     temperature: pd.DataFrame,
-    pluie: pd.DataFrame,
+    rain: pd.DataFrame,
     pesticides: pd.DataFrame,
-) -> tuple[pd.DataFrame, Rapport]:
+) -> tuple[pd.DataFrame, PrepLog]:
     """Join the three explanatory sources onto the yield base.
 
     Each join is followed by a fan-out check: a left join must never change the
     number of rows. This is exactly the check that was missing from the build of
     `yield_df.csv`.
     """
-    rapport = Rapport()
-    dataset = rendement
-    rapport.ajoute("socle rendement", f"{len(dataset):,} lignes")
+    prep_log = PrepLog()
+    dataset = yield_value
+    prep_log.add("socle rendement", f"{len(dataset):,} lignes")
 
-    for nom, source in [
+    for name, source in [
         ("temperature", temperature),
-        ("pluie", pluie),
+        ("pluie", rain),
         ("pesticides", pesticides),
     ]:
-        avant = len(dataset)
+        before = len(dataset)
         dataset = dataset.merge(source, on=["iso3", "year"], how="left", validate="many_to_one")
-        if len(dataset) != avant:
-            raise AssertionError(f"fan-out lors de la jointure {nom} : {avant} -> {len(dataset)}")
-        rapport.ajoute(f"+ {nom}", f"{avant:,} lignes conservees, aucun fan-out")
+        if len(dataset) != before:
+            raise AssertionError(f"fan-out lors de la jointure {name} : {before} -> {len(dataset)}")
+        prep_log.add(f"+ {name}", f"{before:,} lignes conservees, aucun fan-out")
 
-    doublons = int(dataset.duplicated(CLE).sum())
-    if doublons:
-        raise AssertionError(f"la cle finale n'est pas unique ({doublons} doublons)")
-    rapport.ajoute("cle finale", f"{' + '.join(CLE)} unique")
-    return dataset.reset_index(drop=True), rapport
+    duplicates = int(dataset.duplicated(KEY).sum())
+    if duplicates:
+        raise AssertionError(f"la cle finale n'est pas unique ({duplicates} doublons)")
+    prep_log.add("cle finale", f"{' + '.join(KEY)} unique")
+    return dataset.reset_index(drop=True), prep_log
 
 
-def couverture(df: pd.DataFrame, colonne: str) -> pd.Series:
+def coverage(df: pd.DataFrame, column: str) -> pd.Series:
     """Split a column's missing values between whole countries and isolated gaps.
 
     The distinction drives the treatment. If a column is missing for **an entire**
@@ -277,32 +277,32 @@ def couverture(df: pd.DataFrame, colonne: str) -> pd.Series:
     only missing for some years, the country's known value can fill the gap without
     inventing anything.
     """
-    par_pays = df.groupby("iso3")[colonne].agg(["count", "size"])
-    aucune = par_pays[par_pays["count"] == 0]
-    partielle = par_pays[(par_pays["count"] > 0) & (par_pays["count"] < par_pays["size"])]
+    by_country = df.groupby("iso3")[column].agg(["count", "size"])
+    no_value = by_country[by_country["count"] == 0]
+    partial = by_country[(by_country["count"] > 0) & (by_country["count"] < by_country["size"])]
     return pd.Series(
         {
-            "lignes manquantes": int(df[colonne].isna().sum()),
-            "pays sans aucune valeur": len(aucune),
-            "lignes de ces pays": int(aucune["size"].sum()),
-            "pays avec quelques annees manquantes": len(partielle),
+            "lignes manquantes": int(df[column].isna().sum()),
+            "pays sans aucune valeur": len(no_value),
+            "lignes de ces pays": int(no_value["size"].sum()),
+            "pays avec quelques annees manquantes": len(partial),
         },
-        name=colonne,
+        name=column,
     )
 
 
-def table_couverture(df: pd.DataFrame, colonnes: list[str] | None = None) -> pd.DataFrame:
-    """Apply :func:`couverture` to several columns, for side-by-side reading."""
-    colonnes = colonnes or ["avg_temp", "rain_mm", "pesticides_t"]
-    return pd.DataFrame({c: couverture(df, c) for c in colonnes})
+def coverage_table(df: pd.DataFrame, columns: list[str] | None = None) -> pd.DataFrame:
+    """Apply :func:`coverage` to several columns, for side-by-side reading."""
+    columns = columns or ["avg_temp", "rain_mm", "pesticides_t"]
+    return pd.DataFrame({c: coverage(df, c) for c in columns})
 
 
 #: Variables whose training domain is bounded.
-VARIABLES_DOMAINE = ["yield_t_ha", "avg_temp", "rain_mm", "pesticides_t"]
+DOMAIN_VARIABLES = ["yield_t_ha", "avg_temp", "rain_mm", "pesticides_t"]
 
 
-def domaine_apprentissage(
-    df: pd.DataFrame, annee_test: int | None = None, quantiles: tuple[float, float] = (0.05, 0.95)
+def training_domain(
+    df: pd.DataFrame, test_year: int | None = None, quantiles: tuple[float, float] = (0.05, 0.95)
 ) -> pd.DataFrame:
     """Usual bounds of each variable, crop by crop.
 
@@ -310,79 +310,79 @@ def domaine_apprentissage(
     will use them to flag an unusual input **without rejecting it**: falling outside
     these bounds is not an error, it is a zone where the model learned little.
 
-    `annee_test` is excluded from the computation: the year held out for the final
+    `test_year` is excluded from the computation: the year held out for the final
     `/recommend` test must not influence any upstream decision, interface bounds
     included.
     """
-    annee_test = config.ANNEE_TEST if annee_test is None else annee_test
-    avant = df[df["year"] < annee_test]
-    bas, haut = quantiles
+    test_year = config.TEST_YEAR if test_year is None else test_year
+    before = df[df["year"] < test_year]
+    low, high = quantiles
 
-    lignes = []
-    for culture, groupe in avant.groupby("crop"):
-        for variable in VARIABLES_DOMAINE:
-            valeurs = groupe[variable].dropna()
-            if valeurs.empty:
+    rows = []
+    for crop, group in before.groupby("crop"):
+        for variable in DOMAIN_VARIABLES:
+            values = group[variable].dropna()
+            if values.empty:
                 continue
-            lignes.append(
+            rows.append(
                 {
-                    "crop": culture,
+                    "crop": crop,
                     "variable": variable,
-                    "q05": valeurs.quantile(bas),
-                    "q95": valeurs.quantile(haut),
-                    "min": valeurs.min(),
-                    "max": valeurs.max(),
-                    "n": len(valeurs),
+                    "q05": values.quantile(low),
+                    "q95": values.quantile(high),
+                    "min": values.min(),
+                    "max": values.max(),
+                    "n": len(values),
                 }
             )
-    return pd.DataFrame(lignes)
+    return pd.DataFrame(rows)
 
 
-def construit(verbeux: bool = True) -> tuple[pd.DataFrame, dict[str, Rapport]]:
+def build(verbose: bool = True) -> tuple[pd.DataFrame, dict[str, PrepLog]]:
     """Chain reading, preparation, checks and merge."""
-    brut = charge_sources()
-    rendement, r_rendement = prepare_rendement(brut["rendement"])
-    temperature, r_temp = prepare_temperature(brut["temperature"])
-    pluie, r_pluie = prepare_pluie(brut["pluie"])
-    pesticides, r_pest = prepare_pesticides(brut["pesticides"])
+    raw = load_sources()
+    yield_value, r_yield = prepare_yield(raw["rendement"])
+    temperature, r_temp = prepare_temperature(raw["temperature"])
+    rain, r_rain = prepare_rain(raw["pluie"])
+    pesticides, r_pest = prepare_pesticides(raw["pesticides"])
 
-    controle = controle_avant_fusion(
+    check = check_before_merge(
         {
-            "rendement": (rendement, CLE),
+            "rendement": (yield_value, KEY),
             "temperature": (temperature, ["iso3", "year"]),
-            "pluie": (pluie, ["iso3", "year"]),
+            "pluie": (rain, ["iso3", "year"]),
             "pesticides": (pesticides, ["iso3", "year"]),
         }
     )
 
-    dataset, r_fusion = fusionne(rendement, temperature, pluie, pesticides)
+    dataset, r_fusion = merge_sources(yield_value, temperature, rain, pesticides)
 
-    rapports = {
-        "rendement": r_rendement,
+    prep_logs = {
+        "rendement": r_yield,
         "temperature": r_temp,
-        "pluie": r_pluie,
+        "pluie": r_rain,
         "pesticides": r_pest,
         "fusion": r_fusion,
     }
-    if verbeux:
-        for nom, rapport in rapports.items():
-            print(f"-- {nom}\n{rapport}\n")
-        print(controle.to_string(index=False))
+    if verbose:
+        for name, prep_log in prep_logs.items():
+            print(f"-- {name}\n{prep_log}\n")
+        print(check.to_string(index=False))
         print(f"\ndataset : {len(dataset):,} lignes x {dataset.shape[1]} colonnes")
-    return dataset, rapports
+    return dataset, prep_logs
 
 
 def main() -> None:
-    config.DATA_TRAITE.mkdir(parents=True, exist_ok=True)
-    dataset, _ = construit()
+    config.PROCESSED_DATA.mkdir(parents=True, exist_ok=True)
+    dataset, _ = build()
     dataset.to_csv(config.CROP_YIELD_PREDICTION_CSV, index=False)
-    print(f"\necrit {config.CROP_YIELD_PREDICTION_CSV.relative_to(config.RACINE)}")
+    print(f"\necrit {config.CROP_YIELD_PREDICTION_CSV.relative_to(config.ROOT)}")
 
-    domaine = domaine_apprentissage(dataset)
-    domaine.to_csv(config.DOMAINE_APPRENTISSAGE_CSV, index=False)
+    domain = training_domain(dataset)
+    domain.to_csv(config.TRAINING_DOMAIN_CSV, index=False)
     print(
-        f"ecrit {config.DOMAINE_APPRENTISSAGE_CSV.relative_to(config.RACINE)} "
-        f"({len(domaine)} bornes, annee {config.ANNEE_TEST} exclue)"
+        f"ecrit {config.TRAINING_DOMAIN_CSV.relative_to(config.ROOT)} "
+        f"({len(domain)} bornes, annee {config.TEST_YEAR} exclue)"
     )
 
 

@@ -22,10 +22,10 @@ import pandas as pd
 from src.data import geo
 
 #: Lags used to summarise a country's past.
-RETARDS = (1, 2, 3)
+LAGS = (1, 2, 3)
 
 
-def ajoute_geographie(df: pd.DataFrame) -> pd.DataFrame:
+def add_geography(df: pd.DataFrame) -> pd.DataFrame:
     """Add `lat_abs`, `geo_x`, `geo_y` and `geo_z` from the `iso3` code.
 
     * `lat_abs`: absolute latitude, i.e. the distance to the equator. It separates
@@ -39,12 +39,12 @@ def ajoute_geographie(df: pd.DataFrame) -> pd.DataFrame:
     between nearby countries, instead of treating each country as an isolated level. A
     code without coordinates raises an error: no silently wrong geography.
     """
-    manquants = sorted(set(df["iso3"]) - set(geo.COORDONNEES))
-    if manquants:
-        raise KeyError(f"coordonnees absentes pour : {manquants}")
+    missing_items = sorted(set(df["iso3"]) - set(geo.COORDINATES))
+    if missing_items:
+        raise KeyError(f"coordonnees absentes pour : {missing_items}")
 
-    longitudes = df["iso3"].map(lambda code: geo.COORDONNEES[code][0])
-    latitudes = df["iso3"].map(lambda code: geo.COORDONNEES[code][1])
+    longitudes = df["iso3"].map(lambda code: geo.COORDINATES[code][0])
+    latitudes = df["iso3"].map(lambda code: geo.COORDINATES[code][1])
     lon, lat = np.radians(longitudes), np.radians(latitudes)
     return df.assign(
         lat_abs=latitudes.abs(),
@@ -54,7 +54,7 @@ def ajoute_geographie(df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
-def ajoute_log_pesticides(df: pd.DataFrame) -> pd.DataFrame:
+def add_log_pesticides(df: pd.DataFrame) -> pd.DataFrame:
     """Add `log_pesticides = log1p(pesticides_t)`.
 
     National tonnage spans seven orders of magnitude, from under one tonne to over a
@@ -64,7 +64,7 @@ def ajoute_log_pesticides(df: pd.DataFrame) -> pd.DataFrame:
     return df.assign(log_pesticides=np.log1p(df["pesticides_t"]))
 
 
-def ajoute_conditions_passees(df: pd.DataFrame, retards: tuple[int, ...] = RETARDS) -> pd.DataFrame:
+def add_past_conditions(df: pd.DataFrame, lags: tuple[int, ...] = LAGS) -> pd.DataFrame:
     """Add `temp_hist`, `pest_hist` and `log_pest_hist`: means over previous years.
 
     For year *t* of a country, mean of `avg_temp` and `pesticides_t` over the
@@ -81,27 +81,27 @@ def ajoute_conditions_passees(df: pd.DataFrame, retards: tuple[int, ...] = RETAR
     `df` must contain all relevant years of each country. At inference, provide it
     with the country's latest known years in addition to the row to predict.
     """
-    pays_annee = df[["iso3", "year", "avg_temp", "pesticides_t"]].drop_duplicates(["iso3", "year"])
-    decalees = pd.concat(
-        [pays_annee.assign(year=pays_annee["year"] + retard) for retard in retards]
+    country_year = df[["iso3", "year", "avg_temp", "pesticides_t"]].drop_duplicates(["iso3", "year"])
+    shifted = pd.concat(
+        [country_year.assign(year=country_year["year"] + lag) for lag in lags]
     )
-    passe = decalees.groupby(["iso3", "year"])[["avg_temp", "pesticides_t"]].mean()
-    passe.columns = ["temp_hist", "pest_hist"]
+    past = shifted.groupby(["iso3", "year"])[["avg_temp", "pesticides_t"]].mean()
+    past.columns = ["temp_hist", "pest_hist"]
 
-    resultat = df.join(passe, on=["iso3", "year"])
-    return resultat.assign(log_pest_hist=np.log1p(resultat["pest_hist"]))
+    result = df.join(past, on=["iso3", "year"])
+    return result.assign(log_pest_hist=np.log1p(result["pest_hist"]))
 
 
-def prepare(df: pd.DataFrame, retards: tuple[int, ...] = RETARDS) -> pd.DataFrame:
+def prepare(df: pd.DataFrame, lags: tuple[int, ...] = LAGS) -> pd.DataFrame:
     """Chain the three transformations: geography, log pesticides, past conditions."""
     return (
-        df.pipe(ajoute_geographie)
-        .pipe(ajoute_log_pesticides)
-        .pipe(ajoute_conditions_passees, retards=retards)
+        df.pipe(add_geography)
+        .pipe(add_log_pesticides)
+        .pipe(add_past_conditions, lags=lags)
     )
 
 
-def controle_absence_de_fuite(df: pd.DataFrame, retards: tuple[int, ...] = RETARDS) -> None:
+def check_no_leakage(df: pd.DataFrame, lags: tuple[int, ...] = LAGS) -> None:
     """Check that `temp_hist` contains no information from the current year.
 
     Recomputes the expected history from prior years only and compares. This check is
@@ -109,21 +109,21 @@ def controle_absence_de_fuite(df: pd.DataFrame, retards: tuple[int, ...] = RETAR
     own future.
     """
     reference = df[["iso3", "year", "avg_temp"]].drop_duplicates(["iso3", "year"])
-    attendu = {}
+    expected = {}
     temperatures = {(r.iso3, r.year): r.avg_temp for r in reference.itertuples()}
-    for (iso3, annee) in temperatures:
-        passees = [
-            temperatures[(iso3, annee - retard)]
-            for retard in retards
-            if (iso3, annee - retard) in temperatures
+    for (iso3, year) in temperatures:
+        past_values = [
+            temperatures[(iso3, year - lag)]
+            for lag in lags
+            if (iso3, year - lag) in temperatures
         ]
-        attendu[(iso3, annee)] = float(np.mean(passees)) if passees else np.nan
+        expected[(iso3, year)] = float(np.mean(past_values)) if past_values else np.nan
 
-    obtenu = df.dropna(subset=["temp_hist"]).drop_duplicates(["iso3", "year"])
-    for ligne in obtenu.itertuples():
-        cible = attendu[(ligne.iso3, ligne.year)]
-        if not np.isclose(ligne.temp_hist, cible, equal_nan=True):
+    obtained = df.dropna(subset=["temp_hist"]).drop_duplicates(["iso3", "year"])
+    for row in obtained.itertuples():
+        target = expected[(row.iso3, row.year)]
+        if not np.isclose(row.temp_hist, target, equal_nan=True):
             raise AssertionError(
-                f"{ligne.iso3} {ligne.year} : temp_hist={ligne.temp_hist:.4f} "
-                f"au lieu de {cible:.4f} — fuite temporelle possible"
+                f"{row.iso3} {row.year} : temp_hist={row.temp_hist:.4f} "
+                f"au lieu de {target:.4f} — fuite temporelle possible"
             )

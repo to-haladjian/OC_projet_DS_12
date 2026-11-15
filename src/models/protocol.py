@@ -21,91 +21,91 @@ from sklearn.model_selection import KFold, train_test_split
 from src import config
 
 
-def decoupage_aleatoire(
-    df: pd.DataFrame, variables: list[str], cible: str, part_test: float = 0.2
+def random_split(
+    df: pd.DataFrame, variables: list[str], target: str, test_share: float = 0.2
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
     """Split into train / test, once and for all.
 
     With the same seed, the test set is identical for every model: it can stay
     **reserved for the final evaluation** and serve no choice.
     """
-    X_app, X_test, y_app, y_test = train_test_split(
-        df[variables], df[cible], test_size=part_test, random_state=config.SEED
+    X_train, X_test, y_train, y_test = train_test_split(
+        df[variables], df[target], test_size=test_share, random_state=config.SEED
     )
-    if len(X_app) + len(X_test) != len(df):
+    if len(X_train) + len(X_test) != len(df):
         raise AssertionError("des lignes ont ete perdues au decoupage")
-    if not X_app.index.intersection(X_test.index).empty:
+    if not X_train.index.intersection(X_test.index).empty:
         raise AssertionError("des lignes sont communes a l'apprentissage et au test")
-    return X_app, X_test, y_app, y_test
+    return X_train, X_test, y_train, y_test
 
 
-def cv_aleatoire(n_plis: int = 5) -> KFold:
+def random_cv(n_folds: int = 5) -> KFold:
     """Cross-validation to apply to the training set only.
 
     Same seed hence same folds from one model to the next: scores are comparable, and
-    the paired comparison of :func:`src.models.evaluation.compare_appariee` makes sense.
+    the paired comparison of :func:`src.models.evaluation.compare_paired` makes sense.
     """
-    return KFold(n_splits=n_plis, shuffle=True, random_state=config.SEED)
+    return KFold(n_splits=n_folds, shuffle=True, random_state=config.SEED)
 
 
-def decoupage_temporel(
-    df: pd.DataFrame, variables: list[str], cible: str, annee_test: int | None = None,
-    colonne_annee: str = "year",
+def temporal_split(
+    df: pd.DataFrame, variables: list[str], target: str, test_year: int | None = None,
+    year_column: str = "year",
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
-    """Train on prior years, test on `annee_test`.
+    """Train on prior years, test on `test_year`.
 
     Reproduces the real situation of the service: recommending a season the model has
     never seen. Checks that no row is **later** than the test year — such a row would
     be in neither training nor test, and would vanish silently.
     """
-    annee_test = config.ANNEE_TEST if annee_test is None else annee_test
-    annees = df[colonne_annee]
-    if not (annees == annee_test).any():
-        raise AssertionError(f"l'annee de test {annee_test} est absente du jeu")
-    if (annees > annee_test).any():
-        raise AssertionError(f"des lignes sont posterieures a {annee_test}")
+    test_year = config.TEST_YEAR if test_year is None else test_year
+    years = df[year_column]
+    if not (years == test_year).any():
+        raise AssertionError(f"l'annee de test {test_year} est absente du jeu")
+    if (years > test_year).any():
+        raise AssertionError(f"des lignes sont posterieures a {test_year}")
 
-    app, test = df[annees < annee_test], df[annees == annee_test]
-    return app[variables], test[variables], app[cible], test[cible]
+    app, test = df[years < test_year], df[years == test_year]
+    return app[variables], test[variables], app[target], test[target]
 
 
-def cv_temporelle(
-    annees: pd.Series, annees_validation: list[int], annee_test: int | None = None
+def temporal_cv(
+    years: pd.Series, validation_years: list[int], test_year: int | None = None
 ) -> list[tuple[np.ndarray, np.ndarray]]:
     """One fold per validation year: training on **everything before it**.
 
     Returns positions (not index labels), directly usable by `cross_validate`. The
     folds deliberately do not cover all rows: only the last years are evaluated. This
-    is why :func:`src.models.evaluation.predictions_hors_apprentissage` replaces
+    is why :func:`src.models.evaluation.out_of_fold_predictions` replaces
     `cross_val_predict`, which requires full coverage.
     """
-    annee_test = config.ANNEE_TEST if annee_test is None else annee_test
-    if any(a >= annee_test for a in annees_validation):
+    test_year = config.TEST_YEAR if test_year is None else test_year
+    if any(a >= test_year for a in validation_years):
         raise AssertionError(
-            f"une annee de validation atteint l'annee de test {annee_test} : "
+            f"une annee de validation atteint l'annee de test {test_year} : "
             "le test ne doit intervenir qu'une fois, a la fin"
         )
 
-    valeurs = annees.to_numpy()
-    plis = []
-    for annee in sorted(annees_validation):
-        apprentissage = np.flatnonzero(valeurs < annee)
-        validation = np.flatnonzero(valeurs == annee)
-        if not len(apprentissage) or not len(validation):
-            raise AssertionError(f"pli {annee} vide : apprentissage ou validation sans ligne")
-        plis.append((apprentissage, validation))
-    return plis
+    values = years.to_numpy()
+    folds = []
+    for year in sorted(validation_years):
+        training = np.flatnonzero(values < year)
+        validation = np.flatnonzero(values == year)
+        if not len(training) or not len(validation):
+            raise AssertionError(f"pli {year} vide : apprentissage ou validation sans ligne")
+        folds.append((training, validation))
+    return folds
 
 
-def resume_plis(plis: list[tuple[np.ndarray, np.ndarray]], annees_validation: list[int]) -> pd.DataFrame:
+def fold_summary(folds: list[tuple[np.ndarray, np.ndarray]], validation_years: list[int]) -> pd.DataFrame:
     """Readable table of folds: validated year, training rows, evaluated rows."""
     return pd.DataFrame(
         [
             {
-                "annee validee": annee,
+                "annee validee": year,
                 "lignes d'apprentissage": len(app),
                 "lignes evaluees": len(val),
             }
-            for annee, (app, val) in zip(sorted(annees_validation), plis)
+            for year, (app, val) in zip(sorted(validation_years), folds)
         ]
     )

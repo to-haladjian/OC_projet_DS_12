@@ -15,22 +15,22 @@ import os
 
 import requests
 
-URL_PAR_DEFAUT = "http://localhost:8000"
+DEFAULT_URL = "http://localhost:8000"
 
 #: Reads answer instantly; computations load the forest on the API side.
-DELAI_LECTURE, DELAI_CALCUL = 5, 15
+READ_TIMEOUT, COMPUTE_TIMEOUT = 5, 15
 
 #: Below this gap, a prefilled value is considered unchanged (slider rounding).
 TOLERANCE = 1e-6
 
 
-class ErreurAPI(Exception):
+class APIError(Exception):
     """An API call failed; `message` is meant to be shown to the user as is."""
 
-    def __init__(self, message: str, statut: int | None = None):
+    def __init__(self, message: str, status: int | None = None):
         super().__init__(message)
         self.message = message
-        self.statut = statut
+        self.status = status
 
 
 def embedded_mode() -> bool:
@@ -43,108 +43,108 @@ def embedded_mode() -> bool:
     return os.environ.get("API_EMBEDDED", "").strip().lower() in {"1", "true", "oui"}
 
 
-def url_api() -> str:
+def api_base_url() -> str:
     if embedded_mode():
         import embedded_api
 
         return embedded_api.start()
-    return os.environ.get("API_URL", URL_PAR_DEFAUT).rstrip("/")
+    return os.environ.get("API_URL", DEFAULT_URL).rstrip("/")
 
 
-def _detail_422(corps: dict) -> str:
+def _detail_422(body: dict) -> str:
     """Pydantic validation errors, one readable line each."""
-    lignes = []
-    for erreur in corps.get("detail", []):
-        champ = ".".join(str(p) for p in erreur.get("loc", []) if p != "body")
-        lignes.append(f"{champ} : {erreur.get('msg', 'valeur invalide')}")
-    return "Saisie refusée par l'API — " + " ; ".join(lignes) if lignes else "Saisie refusée par l'API."
+    rows = []
+    for error in body.get("detail", []):
+        field_name = ".".join(str(p) for p in error.get("loc", []) if p != "body")
+        rows.append(f"{field_name} : {error.get('msg', 'valeur invalide')}")
+    return "Saisie refusée par l'API — " + " ; ".join(rows) if rows else "Saisie refusée par l'API."
 
 
-def _appel(methode: str, chemin: str, delai: float, corps: dict | None = None):
-    url = f"{url_api()}{chemin}"
+def _call(method: str, path: str, timeout: float, body: dict | None = None):
+    url = f"{api_base_url()}{path}"
     try:
-        reponse = requests.request(methode, url, json=corps, timeout=delai)
-    except requests.Timeout as erreur:
-        raise ErreurAPI(f"L'API n'a pas répondu à temps ({delai} s) : {url}") from erreur
-    except requests.ConnectionError as erreur:
+        response = requests.request(method, url, json=body, timeout=timeout)
+    except requests.Timeout as error:
+        raise APIError(f"L'API n'a pas répondu à temps ({timeout} s) : {url}") from error
+    except requests.ConnectionError as error:
         # In embedded mode, telling the user to start a server would be nonsense: the
         # server is this process, so its thread has died.
-        indice = ("Le service interne s'est arrêté : rechargez la page."
+        hint = ("Le service interne s'est arrêté : rechargez la page."
                   if embedded_mode()
                   else "Est-elle démarrée ? (`uvicorn api.main:app` ou `docker compose up`)")
-        raise ErreurAPI(f"L'API ne répond pas à {url_api()}. {indice}") from erreur
+        raise APIError(f"L'API ne répond pas à {api_base_url()}. {hint}") from error
 
-    if reponse.status_code == 422:
-        raise ErreurAPI(_detail_422(reponse.json()), 422)
-    if reponse.status_code == 404:
-        raise ErreurAPI(reponse.json().get("detail", "Ressource introuvable."), 404)
-    if reponse.status_code == 503:
-        raise ErreurAPI("L'API démarre et charge ses modèles : réessayez dans quelques secondes.", 503)
-    if not reponse.ok:
-        raise ErreurAPI(f"Erreur de l'API ({reponse.status_code}).", reponse.status_code)
-    return reponse.json()
+    if response.status_code == 422:
+        raise APIError(_detail_422(response.json()), 422)
+    if response.status_code == 404:
+        raise APIError(response.json().get("detail", "Ressource introuvable."), 404)
+    if response.status_code == 503:
+        raise APIError("L'API démarre et charge ses modèles : réessayez dans quelques secondes.", 503)
+    if not response.ok:
+        raise APIError(f"Erreur de l'API ({response.status_code}).", response.status_code)
+    return response.json()
 
 
 # --------------------------------------------------------------------------- #
 # Endpoints
 # --------------------------------------------------------------------------- #
 
-def sante() -> dict:
-    return _appel("GET", "/health", DELAI_LECTURE)
+def health() -> dict:
+    return _call("GET", "/health", READ_TIMEOUT)
 
 
-def contexte_predict() -> dict:
-    return _appel("GET", "/predict/contexte", DELAI_LECTURE)
+def predict_context() -> dict:
+    return _call("GET", "/predict/context", READ_TIMEOUT)
 
 
-def predire(culture: str, pluie_mm: float, temperature_c: float,
-            engrais: bool, irrigation: bool) -> dict:
-    return _appel("POST", "/predict", DELAI_CALCUL, {
-        "culture": culture, "pluie_mm": pluie_mm, "temperature_c": temperature_c,
-        "engrais": engrais, "irrigation": irrigation,
+def predict(crop: str, rain_mm: float, temperature_c: float,
+            fertilizer: bool, irrigation: bool) -> dict:
+    return _call("POST", "/predict", COMPUTE_TIMEOUT, {
+        "crop": crop, "rain_mm": rain_mm, "temperature_c": temperature_c,
+        "fertilizer": fertilizer, "irrigation": irrigation,
     })
 
 
-def pays() -> list[dict]:
-    return _appel("GET", "/recommend/pays", DELAI_LECTURE)
+def countries() -> list[dict]:
+    return _call("GET", "/recommend/countries", READ_TIMEOUT)
 
 
-def contexte_pays(iso3: str) -> dict:
-    return _appel("GET", f"/recommend/pays/{iso3}", DELAI_LECTURE)
+def country_context(iso3: str) -> dict:
+    return _call("GET", f"/recommend/countries/{iso3}", READ_TIMEOUT)
 
 
-def recommander(iso3: str, critere: str, modifications: dict | None = None) -> dict:
+def recommend(iso3: str, criterion: str, modifications: dict | None = None) -> dict:
     """Ranking for a country; `modifications` only holds what the user changed."""
-    return _appel("POST", "/recommend", DELAI_CALCUL,
-                  {"iso3": iso3, "critere": critere, **(modifications or {})})
+    return _call("POST", "/recommend", COMPUTE_TIMEOUT,
+                  {"iso3": iso3, "criterion": criterion, **(modifications or {})})
 
 
 # --------------------------------------------------------------------------- #
 # Only send what the user changed
 # --------------------------------------------------------------------------- #
 
-def _differe(a: float, b: float) -> bool:
+def _differs(a: float, b: float) -> bool:
     return abs(float(a) - float(b)) > TOLERANCE * max(1.0, abs(float(b)))
 
 
-def champs_modifies(saisie: dict, defauts: dict) -> dict:
+def changed_fields(entered: dict, defaults: dict) -> dict:
     """The fields of a `/recommend` form that differ from the country's defaults.
 
-    `saisie` holds `temperature_c`, `pluie_mm`, `pesticides_t` and `prix_usd_t`
-    (`{culture: price}`); `defauts` is the answer of `GET /recommend/pays/{iso3}`.
-    Sending only what changed keeps `valeurs_saisies` in the API answer truthful.
+    `entered` holds `temperature_c`, `rain_mm`, `pesticides_t` and `price_usd_t`
+    (`{culture: price}`); `defaults` is the answer of `GET /recommend/countries/{iso3}`.
+    Sending only what changed keeps `entered_values` in the API answer truthful.
     """
     modifications = {
-        champ: saisie[champ]
-        for champ in ("temperature_c", "pluie_mm", "pesticides_t")
-        if _differe(saisie[champ], defauts[champ])
+        field_name: entered[field_name]
+        for field_name in ("temperature_c", "rain_mm", "pesticides_t")
+        if _differs(entered[field_name], defaults[field_name])
     }
-    prix_defaut = {p["culture"]: p["prix_usd_t"] for p in defauts["prix"]}
-    prix = {
-        culture: valeur
-        for culture, valeur in saisie.get("prix_usd_t", {}).items()
-        if _differe(valeur, prix_defaut[culture])
+    default_prices = {p["crop"]: p["price_usd_t"] for p in defaults["prices"]}
+    prices = {
+        crop: value
+        for crop, value in entered.get("price_usd_t", {}).items()
+        if _differs(value, default_prices[crop])
     }
-    if prix:
-        modifications["prix_usd_t"] = prix
+    if prices:
+        modifications["price_usd_t"] = prices
     return modifications

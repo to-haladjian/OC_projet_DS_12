@@ -1,6 +1,6 @@
 {
  "ALB": {
-  "nom": "Albania",
+  "name": "Albania",
   "iso3": "ALB",
   "year": 2013,
   "rain_mm": 1485.0,
@@ -11,7 +11,7 @@
   "geo_y": 0.25636036716519445,
   "geo_z": 0.6565857557529564,
   "pest_hist": 1126.6833333333334,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -21,7 +21,7 @@
   ]
  },
  "ARG": {
-  "nom": "Argentina",
+  "name": "Argentina",
   "iso3": "ARG",
   "year": 2013,
   "rain_mm": 591.0,
@@ -32,7 +32,7 @@
   "geo_y": -0.7379861184945539,
   "geo_z": -0.5441998334946452,
   "pest_hist": 114174.91333333333,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Potatoes",
@@ -44,7 +44,7 @@
   ]
  },
  "ARM": {
-  "nom": "Armenia",
+  "name": "Armenia",
   "iso3": "ARM",
   "year": 2013,
   "rain_mm": 562.0,
@@ -55,14 +55,14 @@
   "geo_y": 0.5364748053563225,
   "geo_z": 0.6461239796429639,
   "pest_hist": 278.72,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Wheat"
   ]
  },
  "AUS": {
-  "nom": "Australia",
+  "name": "Australia",
   "iso3": "AUS",
   "year": 2013,
   "rain_mm": 534.0,
@@ -73,7 +73,7 @@
   "geo_y": 0.46972021907622435,
   "geo_z": -0.5649670034249379,
   "pest_hist": 46163.420000000006,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -84,7 +84,7 @@
   ]
  },
  "AUT": {
-  "nom": "Austria",
+  "name": "Austria",
   "iso3": "AUT",
   "year": 2013,
   "rain_mm": 1110.0,
@@ -95,7 +95,7 @@
   "geo_y": 0.1712516739423476,
   "geo_z": 0.7399833821035143,
   "pest_hist": 3565.7333333333336,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Sorghum",
@@ -104,7 +104,7 @@
   ]
  },
  "AZE": {
-  "nom": "Azerbaijan",
+  "name": "Azerbaijan",
   "iso3": "AZE",
   "year": 2013,
   "rain_mm": 447.0,
@@ -115,7 +115,7 @@
   "geo_y": 0.57042180125891,
   "geo_z": 0.647189023035286,
   "pest_hist": 437.34666666666664,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -125,7 +125,7 @@
   ]
  },
  "BDI": {
-  "nom": "Burundi",
+  "name": "Burundi",
   "iso3": "BDI",
   "year": 2013,
   "rain_mm": 1274.0,
@@ -136,7 +136,7 @@
   "geo_y": 0.4948180575093319,
   "geo_z": -0.056518534482024534,
   "pest_hist": 146.25333333333333,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Potatoes",
@@ -149,7 +149,7 @@
   ]
  },
  "BEL": {
-  "nom": "Belgium",
+  "name": "Belgium",
   "iso3": "BEL",
   "year": 2013,
   "rain_mm": 847.0,
@@ -160,14 +160,14 @@
   "geo_y": 0.048285451946822724,
   "geo_z": 0.7759363215537186,
   "pest_hist": 5508.09,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Wheat"
   ]
  },
  "BFA": {
-  "nom": "Burkina Faso",
+  "name": "Burkina Faso",
   "iso3": "BFA",
   "year": 2013,
   "rain_mm": 748.0,
@@ -178,7 +178,7 @@
   "geo_y": -0.02968167175245221,
   "geo_z": 0.21081299374532866,
   "pest_hist": 709.63,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Potatoes",
@@ -190,7 +190,7 @@
   ]
  },
  "BGD": {
-  "nom": "Bangladesh",
+  "name": "Bangladesh",
   "iso3": "BGD",
   "year": 2013,
   "rain_mm": 2666.0,
@@ -201,7 +201,7 @@
   "geo_y": 0.9157210027697654,
   "geo_z": 0.4017879572638456,
   "pest_hist": 13790.393333333333,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -212,7 +212,7 @@
   ]
  },
  "BGR": {
-  "nom": "Bulgaria",
+  "name": "Bulgaria",
   "iso3": "BGR",
   "year": 2013,
   "rain_mm": 608.0,
@@ -223,7 +223,7 @@
   "geo_y": 0.3116183429104038,
   "geo_z": 0.6779030949693043,
   "pest_hist": 1459.75,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -233,7 +233,7 @@
   ]
  },
  "BHR": {
-  "nom": "Bahrain",
+  "name": "Bahrain",
   "iso3": "BHR",
   "year": 2013,
   "rain_mm": 83.0,
@@ -244,13 +244,13 @@
   "geo_y": 0.6931223361906029,
   "geo_z": 0.44103598890878815,
   "pest_hist": 9.373333333333333,
-  "cultures_observees": [
+  "observed_crops": [
    "Potatoes",
    "Sweet potatoes"
   ]
  },
  "BHS": {
-  "nom": "Bahamas",
+  "name": "Bahamas",
   "iso3": "BHS",
   "year": 2013,
   "rain_mm": 1292.0,
@@ -261,7 +261,7 @@
   "geo_y": -0.8807425361995831,
   "geo_z": 0.4352310993723275,
   "pest_hist": 268.2,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -269,7 +269,7 @@
   ]
  },
  "BLR": {
-  "nom": "Belarus",
+  "name": "Belarus",
   "iso3": "BLR",
   "year": 2013,
   "rain_mm": 618.0,
@@ -280,14 +280,14 @@
   "geo_y": 0.27547593328749126,
   "geo_z": 0.8041681988948687,
   "pest_hist": 8730.43,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Wheat"
   ]
  },
  "BOL": {
-  "nom": "Bolivia (Plurinational State of)",
+  "name": "Bolivia (Plurinational State of)",
   "iso3": "BOL",
   "year": 2013,
   "rain_mm": 1146.0,
@@ -298,7 +298,7 @@
   "geo_y": -0.8674894492836103,
   "geo_z": -0.30170436449670346,
   "pest_hist": 21610.12,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -311,7 +311,7 @@
   ]
  },
  "BRA": {
-  "nom": "Brazil",
+  "name": "Brazil",
   "iso3": "BRA",
   "year": 2013,
   "rain_mm": 1761.0,
@@ -322,7 +322,7 @@
   "geo_y": -0.6887204063626368,
   "geo_z": -0.27194435301695374,
   "pest_hist": 344729.6666666667,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Potatoes",
@@ -335,7 +335,7 @@
   ]
  },
  "BWA": {
-  "nom": "Botswana",
+  "name": "Botswana",
   "iso3": "BWA",
   "year": 2013,
   "rain_mm": 416.0,
@@ -346,14 +346,14 @@
   "geo_y": 0.4016274830419892,
   "geo_z": -0.39698770618724966,
   "pest_hist": 17.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Sorghum",
    "Wheat"
   ]
  },
  "CAF": {
-  "nom": "Central African Republic",
+  "name": "Central African Republic",
   "iso3": "CAF",
   "year": 2013,
   "rain_mm": 1342.0,
@@ -364,7 +364,7 @@
   "geo_y": 0.31345627227108713,
   "geo_z": 0.0984513622388918,
   "pest_hist": 22.87,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -375,7 +375,7 @@
   ]
  },
  "CAN": {
-  "nom": "Canada",
+  "name": "Canada",
   "iso3": "CAN",
   "year": 2013,
   "rain_mm": 537.0,
@@ -386,7 +386,7 @@
   "geo_y": -0.6631355484163062,
   "geo_z": 0.7482614161630711,
   "pest_hist": 65555.36666666665,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Soybeans",
@@ -394,7 +394,7 @@
   ]
  },
  "CHE": {
-  "nom": "Switzerland",
+  "name": "Switzerland",
   "iso3": "CHE",
   "year": 2013,
   "rain_mm": 1537.0,
@@ -405,7 +405,7 @@
   "geo_y": 0.09499116881247022,
   "geo_z": 0.7324240794262119,
   "pest_hist": 2089.8799999999997,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Soybeans",
@@ -413,7 +413,7 @@
   ]
  },
  "CHL": {
-  "nom": "Chile",
+  "name": "Chile",
   "iso3": "CHL",
   "year": 2013,
   "rain_mm": 1522.0,
@@ -424,7 +424,7 @@
   "geo_y": -0.7742152137061576,
   "geo_z": -0.5792811723426788,
   "pest_hist": 9830.72,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -433,7 +433,7 @@
   ]
  },
  "CHN": {
-  "nom": "China, mainland",
+  "name": "China, mainland",
   "iso3": "CHN",
   "year": 2013,
   "rain_mm": 645.0,
@@ -444,7 +444,7 @@
   "geo_y": 0.7857886858759587,
   "geo_z": 0.5443462505846606,
   "pest_hist": 1783667.3333333333,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Potatoes",
@@ -456,7 +456,7 @@
   ]
  },
  "CIV": {
-  "nom": "Côte d'Ivoire",
+  "name": "Côte d'Ivoire",
   "iso3": "CIV",
   "year": 2013,
   "rain_mm": 1348.0,
@@ -467,7 +467,7 @@
   "geo_y": -0.10053240259742546,
   "geo_z": 0.11719074401865834,
   "pest_hist": 93.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -479,7 +479,7 @@
   ]
  },
  "CMR": {
-  "nom": "Cameroon",
+  "name": "Cameroon",
   "iso3": "CMR",
   "year": 2013,
   "rain_mm": 1604.0,
@@ -490,7 +490,7 @@
   "geo_y": 0.19965818345785014,
   "geo_z": 0.10348694525042253,
   "pest_hist": 1301.8566666666668,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -504,7 +504,7 @@
   ]
  },
  "COG": {
-  "nom": "Congo",
+  "name": "Congo",
   "iso3": "COG",
   "year": 2013,
   "rain_mm": 1646.0,
@@ -515,7 +515,7 @@
   "geo_y": 0.2559630799396279,
   "geo_z": -0.0350739227745228,
   "pest_hist": 0.87,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -526,7 +526,7 @@
   ]
  },
  "COL": {
-  "nom": "Colombia",
+  "name": "Colombia",
   "iso3": "COL",
   "year": 2013,
   "rain_mm": 3240.0,
@@ -537,7 +537,7 @@
   "geo_y": -0.9597748513356059,
   "geo_z": 0.11060166376267448,
   "pest_hist": 50381.06333333333,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -550,7 +550,7 @@
   ]
  },
  "CZE": {
-  "nom": "Czechia",
+  "name": "Czechia",
   "iso3": "CZE",
   "year": 2013,
   "rain_mm": 677.0,
@@ -561,7 +561,7 @@
   "geo_y": 0.1718095329648029,
   "geo_z": 0.7649214009184317,
   "pest_hist": 5202.953333333334,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Soybeans",
@@ -569,7 +569,7 @@
   ]
  },
  "DEU": {
-  "nom": "Germany",
+  "name": "Germany",
   "iso3": "DEU",
   "year": 2013,
   "rain_mm": 700.0,
@@ -580,7 +580,7 @@
   "geo_y": 0.10431939914592149,
   "geo_z": 0.7775851205504819,
   "pest_hist": 43369.75666666666,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Soybeans",
@@ -588,7 +588,7 @@
   ]
  },
  "DNK": {
-  "nom": "Denmark",
+  "name": "Denmark",
   "iso3": "DNK",
   "year": 2013,
   "rain_mm": 703.0,
@@ -599,14 +599,14 @@
   "geo_y": 0.10897106156395718,
   "geo_z": 0.8267861547451668,
   "pest_hist": 4619.826666666667,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Wheat"
   ]
  },
  "DOM": {
-  "nom": "Dominican Republic",
+  "name": "Dominican Republic",
   "iso3": "DOM",
   "year": 2013,
   "rain_mm": 1410.0,
@@ -617,7 +617,7 @@
   "geo_y": -0.8904354068083535,
   "geo_z": 0.32408253630893125,
   "pest_hist": 6316.61,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -629,7 +629,7 @@
   ]
  },
  "DZA": {
-  "nom": "Algeria",
+  "name": "Algeria",
   "iso3": "DZA",
   "year": 2013,
   "rain_mm": 89.0,
@@ -640,7 +640,7 @@
   "geo_y": 0.050365701864659884,
   "geo_z": 0.5816971518176633,
   "pest_hist": 10845.8,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -649,7 +649,7 @@
   ]
  },
  "ECU": {
-  "nom": "Ecuador",
+  "name": "Ecuador",
   "iso3": "ECU",
   "year": 2013,
   "rain_mm": 2274.0,
@@ -660,7 +660,7 @@
   "geo_y": -0.982354216326506,
   "geo_z": -0.028096103174849188,
   "pest_hist": 20212.1,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -673,7 +673,7 @@
   ]
  },
  "EGY": {
-  "nom": "Egypt",
+  "name": "Egypt",
   "iso3": "EGY",
   "year": 2013,
   "rain_mm": 51.0,
@@ -684,7 +684,7 @@
   "geo_y": 0.4533023235381358,
   "geo_z": 0.4912078346912563,
   "pest_hist": 12842.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -695,7 +695,7 @@
   ]
  },
  "ERI": {
-  "nom": "Eritrea",
+  "name": "Eritrea",
   "iso3": "ERI",
   "year": 2013,
   "rain_mm": 383.0,
@@ -706,7 +706,7 @@
   "geo_y": 0.6075891097594964,
   "geo_z": 0.2566267645987094,
   "pest_hist": 27.63,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Sorghum",
@@ -714,7 +714,7 @@
   ]
  },
  "ESP": {
-  "nom": "Spain",
+  "name": "Spain",
   "iso3": "ESP",
   "year": 2013,
   "rain_mm": 636.0,
@@ -725,7 +725,7 @@
   "geo_y": -0.0416744572713184,
   "geo_z": 0.6372895001106834,
   "pest_hist": 47086.666666666664,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -736,7 +736,7 @@
   ]
  },
  "EST": {
-  "nom": "Estonia",
+  "name": "Estonia",
   "iso3": "EST",
   "year": 2013,
   "rain_mm": 626.0,
@@ -747,13 +747,13 @@
   "geo_y": 0.21893961226108677,
   "geo_z": 0.8591385812742725,
   "pest_hist": 509.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Potatoes",
    "Wheat"
   ]
  },
  "FIN": {
-  "nom": "Finland",
+  "name": "Finland",
   "iso3": "FIN",
   "year": 2013,
   "rain_mm": 536.0,
@@ -764,13 +764,13 @@
   "geo_y": 0.20130765978776952,
   "geo_z": 0.8778994145657237,
   "pest_hist": 1666.5,
-  "cultures_observees": [
+  "observed_crops": [
    "Potatoes",
    "Wheat"
   ]
  },
  "FRA": {
-  "nom": "France",
+  "name": "France",
   "iso3": "FRA",
   "year": 2013,
   "rain_mm": 867.0,
@@ -781,7 +781,7 @@
   "geo_y": 0.033773193660514844,
   "geo_z": 0.7360970871197343,
   "pest_hist": 62163.19666666666,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -791,7 +791,7 @@
   ]
  },
  "GBR": {
-  "nom": "United Kingdom",
+  "name": "United Kingdom",
   "iso3": "GBR",
   "year": 2013,
   "rain_mm": 1220.0,
@@ -802,13 +802,13 @@
   "geo_y": -0.016410335231652848,
   "geo_z": 0.79494435338751,
   "pest_hist": 16963.72333333333,
-  "cultures_observees": [
+  "observed_crops": [
    "Potatoes",
    "Wheat"
   ]
  },
  "GHA": {
-  "nom": "Ghana",
+  "name": "Ghana",
   "iso3": "GHA",
   "year": 2013,
   "rain_mm": 1187.0,
@@ -819,7 +819,7 @@
   "geo_y": -0.0171620045541631,
   "geo_z": 0.11563062744542159,
   "pest_hist": 378.97,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -830,7 +830,7 @@
   ]
  },
  "GIN": {
-  "nom": "Guinea",
+  "name": "Guinea",
   "iso3": "GIN",
   "year": 2013,
   "rain_mm": 1651.0,
@@ -841,7 +841,7 @@
   "geo_y": -0.19785009604763965,
   "geo_z": 0.17845876356260937,
   "pest_hist": 663.2266666666667,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -853,7 +853,7 @@
   ]
  },
  "GNB": {
-  "nom": "Guinea-Bissau",
+  "name": "Guinea-Bissau",
   "iso3": "GNB",
   "year": 2013,
   "rain_mm": 1577.0,
@@ -864,7 +864,7 @@
   "geo_y": -0.25983948584135014,
   "geo_z": 0.20637496429059698,
   "pest_hist": 82.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -873,7 +873,7 @@
   ]
  },
  "GRC": {
-  "nom": "Greece",
+  "name": "Greece",
   "iso3": "GRC",
   "year": 2013,
   "rain_mm": 652.0,
@@ -884,7 +884,7 @@
   "geo_y": 0.30947440372200963,
   "geo_z": 0.6263317329256213,
   "pest_hist": 7266.566666666667,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -895,7 +895,7 @@
   ]
  },
  "GTM": {
-  "nom": "Guatemala",
+  "name": "Guatemala",
   "iso3": "GTM",
   "year": 2013,
   "rain_mm": 1996.0,
@@ -906,7 +906,7 @@
   "geo_y": -0.9666468638257986,
   "geo_z": 0.2557832273946203,
   "pest_hist": 17055.086666666666,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -919,7 +919,7 @@
   ]
  },
  "GUY": {
-  "nom": "Guyana",
+  "name": "Guyana",
   "iso3": "GUY",
   "year": 2013,
   "rain_mm": 2387.0,
@@ -930,7 +930,7 @@
   "geo_y": -0.8427532310651815,
   "geo_z": 0.11060166376267448,
   "pest_hist": 346.7733333333333,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -940,7 +940,7 @@
   ]
  },
  "HND": {
-  "nom": "Honduras",
+  "name": "Honduras",
   "iso3": "HND",
   "year": 2013,
   "rain_mm": 1976.0,
@@ -951,7 +951,7 @@
   "geo_y": -0.9657237358706717,
   "geo_z": 0.2562893731329966,
   "pest_hist": 6418.650000000001,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -964,7 +964,7 @@
   ]
  },
  "HRV": {
-  "nom": "Croatia",
+  "name": "Croatia",
   "iso3": "HRV",
   "year": 2013,
   "rain_mm": 1113.0,
@@ -975,7 +975,7 @@
   "geo_y": 0.2022239376250113,
   "geo_z": 0.7100624910579246,
   "pest_hist": 1638.7366666666667,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Sorghum",
@@ -984,7 +984,7 @@
   ]
  },
  "HTI": {
-  "nom": "Haiti",
+  "name": "Haiti",
   "iso3": "HTI",
   "year": 2013,
   "rain_mm": 1440.0,
@@ -995,7 +995,7 @@
   "geo_y": -0.902450805373209,
   "geo_z": 0.32375229022027885,
   "pest_hist": 27.850000000000005,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -1007,7 +1007,7 @@
   ]
  },
  "HUN": {
-  "nom": "Hungary",
+  "name": "Hungary",
   "iso3": "HUN",
   "year": 2013,
   "rain_mm": 589.0,
@@ -1018,7 +1018,7 @@
   "geo_y": 0.2245033436766595,
   "geo_z": 0.7351512727534641,
   "pest_hist": 8971.31,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -1028,7 +1028,7 @@
   ]
  },
  "IDN": {
-  "nom": "Indonesia",
+  "name": "Indonesia",
   "iso3": "IDN",
   "year": 2013,
   "rain_mm": 2702.0,
@@ -1039,7 +1039,7 @@
   "geo_y": 0.9265980179816419,
   "geo_z": -0.08506912782242805,
   "pest_hist": 1597.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Potatoes",
@@ -1049,7 +1049,7 @@
   ]
  },
  "IND": {
-  "nom": "India",
+  "name": "India",
   "iso3": "IND",
   "year": 2013,
   "rain_mm": 1083.0,
@@ -1060,7 +1060,7 @@
   "geo_y": 0.9196254577093651,
   "geo_z": 0.3474266814914389,
   "pest_hist": 49537.89666666667,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Potatoes",
@@ -1072,7 +1072,7 @@
   ]
  },
  "IRL": {
-  "nom": "Ireland",
+  "name": "Ireland",
   "iso3": "IRL",
   "year": 2013,
   "rain_mm": 1118.0,
@@ -1083,13 +1083,13 @@
   "geo_y": -0.07403990960931986,
   "geo_z": 0.8001036359678468,
   "pest_hist": 3039.5333333333333,
-  "cultures_observees": [
+  "observed_crops": [
    "Potatoes",
    "Wheat"
   ]
  },
  "IRN": {
-  "nom": "Iran (Islamic Republic of)",
+  "name": "Iran (Islamic Republic of)",
   "iso3": "IRN",
   "year": 2013,
   "rain_mm": 228.0,
@@ -1100,7 +1100,7 @@
   "geo_y": 0.6518672190096666,
   "geo_z": 0.5562956155003047,
   "pest_hist": 2330.306666666667,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -1109,7 +1109,7 @@
   ]
  },
  "IRQ": {
-  "nom": "Iraq",
+  "name": "Iraq",
   "iso3": "IRQ",
   "year": 2013,
   "rain_mm": 216.0,
@@ -1120,7 +1120,7 @@
   "geo_y": 0.5842029987876407,
   "geo_z": 0.5571655152193883,
   "pest_hist": 1795.9399999999998,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -1130,7 +1130,7 @@
   ]
  },
  "ITA": {
-  "nom": "Italy",
+  "name": "Italy",
   "iso3": "ITA",
   "year": 2013,
   "rain_mm": 832.0,
@@ -1141,7 +1141,7 @@
   "geo_y": 0.15681057409307483,
   "geo_z": 0.6775180777551102,
   "pest_hist": 68064.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -1152,7 +1152,7 @@
   ]
  },
  "JAM": {
-  "nom": "Jamaica",
+  "name": "Jamaica",
   "iso3": "JAM",
   "year": 2013,
   "rain_mm": 2051.0,
@@ -1163,7 +1163,7 @@
   "geo_y": -0.9268828128200111,
   "geo_z": 0.31117407589440566,
   "pest_hist": 909.71,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -1174,7 +1174,7 @@
   ]
  },
  "JPN": {
-  "nom": "Japan",
+  "name": "Japan",
   "iso3": "JPN",
   "year": 2013,
   "rain_mm": 1668.0,
@@ -1185,7 +1185,7 @@
   "geo_y": 0.5570194372025694,
   "geo_z": 0.5821229701572894,
   "pest_hist": 54029.56666666667,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -1196,7 +1196,7 @@
   ]
  },
  "KAZ": {
-  "nom": "Kazakhstan",
+  "name": "Kazakhstan",
   "iso3": "KAZ",
   "year": 2013,
   "rain_mm": 250.0,
@@ -1207,7 +1207,7 @@
   "geo_y": 0.6330273929090867,
   "geo_z": 0.7364513976299024,
   "pest_hist": 8538.343333333332,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -1217,7 +1217,7 @@
   ]
  },
  "KEN": {
-  "nom": "Kenya",
+  "name": "Kenya",
   "iso3": "KEN",
   "year": 2013,
   "rain_mm": 630.0,
@@ -1228,7 +1228,7 @@
   "geo_y": 0.5998341563907469,
   "geo_z": -0.009599163462400142,
   "pest_hist": 1578.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -1242,7 +1242,7 @@
   ]
  },
  "KOR": {
-  "nom": "Republic of Korea",
+  "name": "Republic of Korea",
   "iso3": "KOR",
   "year": 2013,
   "rain_mm": 1274.0,
@@ -1253,7 +1253,7 @@
   "geo_y": 0.6395222989020202,
   "geo_z": 0.5907464997675699,
   "pest_hist": 19000.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -1264,7 +1264,7 @@
   ]
  },
  "LAO": {
-  "nom": "Lao People's Democratic Republic",
+  "name": "Lao People's Democratic Republic",
   "iso3": "LAO",
   "year": 2013,
   "rain_mm": 1834.0,
@@ -1275,7 +1275,7 @@
   "geo_y": 0.9229745622140587,
   "geo_z": 0.3138267451799959,
   "pest_hist": 29.72,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Potatoes",
@@ -1285,7 +1285,7 @@
   ]
  },
  "LBN": {
-  "nom": "Lebanon",
+  "name": "Lebanon",
   "iso3": "LBN",
   "year": 2013,
   "rain_mm": 661.0,
@@ -1296,7 +1296,7 @@
   "geo_y": 0.4846869371641482,
   "geo_z": 0.5568756164881881,
   "pest_hist": 1816.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Sorghum",
@@ -1304,7 +1304,7 @@
   ]
  },
  "LBY": {
-  "nom": "Libya",
+  "name": "Libya",
   "iso3": "LBY",
   "year": 2013,
   "rain_mm": 56.0,
@@ -1315,14 +1315,14 @@
   "geo_y": 0.2258518666132237,
   "geo_z": 0.5207116546699958,
   "pest_hist": 3548.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Wheat"
   ]
  },
  "LKA": {
-  "nom": "Sri Lanka",
+  "name": "Sri Lanka",
   "iso3": "LKA",
   "year": 2013,
   "rain_mm": 1712.0,
@@ -1333,7 +1333,7 @@
   "geo_y": 0.9781201560471924,
   "geo_z": 0.12567953928344175,
   "pest_hist": 1284.55,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -1345,7 +1345,7 @@
   ]
  },
  "LSO": {
-  "nom": "Lesotho",
+  "name": "Lesotho",
   "iso3": "LSO",
   "year": 2013,
   "rain_mm": 788.0,
@@ -1356,7 +1356,7 @@
   "geo_y": 0.40707721002456165,
   "geo_z": -0.4921197186583255,
   "pest_hist": 175.72666666666666,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Sorghum",
@@ -1364,7 +1364,7 @@
   ]
  },
  "LTU": {
-  "nom": "Lithuania",
+  "name": "Lithuania",
   "iso3": "LTU",
   "year": 2013,
   "rain_mm": 656.0,
@@ -1375,14 +1375,14 @@
   "geo_y": 0.23281858608936837,
   "geo_z": 0.8207505758233188,
   "pest_hist": 2142.0033333333336,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Wheat"
   ]
  },
  "LVA": {
-  "nom": "Latvia",
+  "name": "Latvia",
   "iso3": "LVA",
   "year": 2013,
   "rain_mm": 641.0,
@@ -1393,13 +1393,13 @@
   "geo_y": 0.22531720334380975,
   "geo_z": 0.8373372614135934,
   "pest_hist": 1164.9866666666667,
-  "cultures_observees": [
+  "observed_crops": [
    "Potatoes",
    "Wheat"
   ]
  },
  "MAR": {
-  "nom": "Morocco",
+  "name": "Morocco",
   "iso3": "MAR",
   "year": 2013,
   "rain_mm": 346.0,
@@ -1410,7 +1410,7 @@
   "geo_y": -0.09386882723864304,
   "geo_z": 0.5453707056764864,
   "pest_hist": 13697.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -1421,7 +1421,7 @@
   ]
  },
  "MDA": {
-  "nom": "Republic of Moldova",
+  "name": "Republic of Moldova",
   "iso3": "MDA",
   "year": 2013,
   "rain_mm": 450.0,
@@ -1432,7 +1432,7 @@
   "geo_y": 0.3259048427124581,
   "geo_z": 0.73325534622256,
   "pest_hist": 2412.1,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Sorghum",
@@ -1441,7 +1441,7 @@
   ]
  },
  "MDG": {
-  "nom": "Madagascar",
+  "name": "Madagascar",
   "iso3": "MDG",
   "year": 2013,
   "rain_mm": 1513.0,
@@ -1452,7 +1452,7 @@
   "geo_y": 0.6952942001880388,
   "geo_z": -0.3278775179757128,
   "pest_hist": 309.9866666666667,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Potatoes",
@@ -1464,7 +1464,7 @@
   ]
  },
  "MEX": {
-  "nom": "Mexico",
+  "name": "Mexico",
   "iso3": "MEX",
   "year": 2013,
   "rain_mm": 758.0,
@@ -1475,7 +1475,7 @@
   "geo_y": -0.9191789036713484,
   "geo_z": 0.35901962425124617,
   "pest_hist": 64625.20333333334,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Potatoes",
@@ -1487,7 +1487,7 @@
   ]
  },
  "MKD": {
-  "nom": "The former Yugoslav Republic of Macedonia",
+  "name": "The former Yugoslav Republic of Macedonia",
   "iso3": "MKD",
   "year": 2013,
   "rain_mm": 619.0,
@@ -1498,7 +1498,7 @@
   "geo_y": 0.27338834486209024,
   "geo_z": 0.6660118674342516,
   "pest_hist": 98.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -1508,7 +1508,7 @@
   ]
  },
  "MLI": {
-  "nom": "Mali",
+  "name": "Mali",
   "iso3": "MLI",
   "year": 2013,
   "rain_mm": 282.0,
@@ -1519,7 +1519,7 @@
   "geo_y": -0.10248419906969077,
   "geo_z": 0.2334453638559054,
   "pest_hist": 2.8699999999999997,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Potatoes",
@@ -1532,7 +1532,7 @@
   ]
  },
  "MOZ": {
-  "nom": "Mozambique",
+  "name": "Mozambique",
   "iso3": "MOZ",
   "year": 2013,
   "rain_mm": 1032.0,
@@ -1543,7 +1543,7 @@
   "geo_y": 0.5633564279682146,
   "geo_z": -0.30735661779980705,
   "pest_hist": 906.9866666666667,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Potatoes",
@@ -1554,7 +1554,7 @@
   ]
  },
  "MRT": {
-  "nom": "Mauritania",
+  "name": "Mauritania",
   "iso3": "MRT",
   "year": 2013,
   "rain_mm": 92.0,
@@ -1565,7 +1565,7 @@
   "geo_y": -0.20891644691357095,
   "geo_z": 0.29987341006350315,
   "pest_hist": 35.78333333333333,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -1576,7 +1576,7 @@
   ]
  },
  "MUS": {
-  "nom": "Mauritius",
+  "name": "Mauritius",
   "iso3": "MUS",
   "year": 2013,
   "rain_mm": 2041.0,
@@ -1587,7 +1587,7 @@
   "geo_y": 0.7919937309532092,
   "geo_z": -0.34546199167105224,
   "pest_hist": 684.7833333333333,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Potatoes",
@@ -1596,7 +1596,7 @@
   ]
  },
  "MWI": {
-  "nom": "Malawi",
+  "name": "Malawi",
   "iso3": "MWI",
   "year": 2013,
   "rain_mm": 1181.0,
@@ -1607,7 +1607,7 @@
   "geo_y": 0.5485665918683328,
   "geo_z": -0.23615981916514528,
   "pest_hist": 637.84,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -1619,7 +1619,7 @@
   ]
  },
  "MYS": {
-  "nom": "Malaysia",
+  "name": "Malaysia",
   "iso3": "MYS",
   "year": 2013,
   "rain_mm": 2875.0,
@@ -1630,7 +1630,7 @@
   "geo_y": 0.9701249165825933,
   "geo_z": 0.06279051952931337,
   "pest_hist": 50522.49,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Rice, paddy",
@@ -1638,7 +1638,7 @@
   ]
  },
  "NAM": {
-  "nom": "Namibia",
+  "name": "Namibia",
   "iso3": "NAM",
   "year": 2013,
   "rain_mm": 285.0,
@@ -1649,7 +1649,7 @@
   "geo_y": 0.27920256671096666,
   "geo_z": -0.355433256486863,
   "pest_hist": 56.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Sorghum",
@@ -1657,7 +1657,7 @@
   ]
  },
  "NER": {
-  "nom": "Niger",
+  "name": "Niger",
   "iso3": "NER",
   "year": 2013,
   "rain_mm": 151.0,
@@ -1668,7 +1668,7 @@
   "geo_y": 0.10086975173847987,
   "geo_z": 0.243784282674591,
   "pest_hist": 14.483333333333334,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Potatoes",
@@ -1679,7 +1679,7 @@
   ]
  },
  "NIC": {
-  "nom": "Nicaragua",
+  "name": "Nicaragua",
   "iso3": "NIC",
   "year": 2013,
   "rain_mm": 2280.0,
@@ -1690,7 +1690,7 @@
   "geo_y": -0.9740307170640589,
   "geo_z": 0.21592839689843701,
   "pest_hist": 7196.02,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -1702,7 +1702,7 @@
   ]
  },
  "NLD": {
-  "nom": "Netherlands",
+  "name": "Netherlands",
   "iso3": "NLD",
   "year": 2013,
   "rain_mm": 778.0,
@@ -1713,14 +1713,14 @@
   "geo_y": 0.056767324103153355,
   "geo_z": 0.7888696107795341,
   "pest_hist": 10629.443333333335,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Wheat"
   ]
  },
  "NOR": {
-  "nom": "Norway",
+  "name": "Norway",
   "iso3": "NOR",
   "year": 2013,
   "rain_mm": 1414.0,
@@ -1731,13 +1731,13 @@
   "geo_y": 0.08197182677005002,
   "geo_z": 0.8779829754279805,
   "pest_hist": 778.9566666666666,
-  "cultures_observees": [
+  "observed_crops": [
    "Potatoes",
    "Wheat"
   ]
  },
  "NPL": {
-  "nom": "Nepal",
+  "name": "Nepal",
   "iso3": "NPL",
   "year": 2013,
   "rain_mm": 1500.0,
@@ -1748,7 +1748,7 @@
   "geo_y": 0.8819918860298726,
   "geo_z": 0.46391460897919706,
   "pest_hist": 361.75,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -1757,7 +1757,7 @@
   ]
  },
  "NZL": {
-  "nom": "New Zealand",
+  "name": "New Zealand",
   "iso3": "NZL",
   "year": 2013,
   "rain_mm": 1732.0,
@@ -1768,7 +1768,7 @@
   "geo_y": 0.07282514032815678,
   "geo_z": -0.63162345606074,
   "pest_hist": 5086.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Sweet potatoes",
@@ -1776,7 +1776,7 @@
   ]
  },
  "PAK": {
-  "nom": "Pakistan",
+  "name": "Pakistan",
   "iso3": "PAK",
   "year": 2013,
   "rain_mm": 494.0,
@@ -1787,7 +1787,7 @@
   "geo_y": 0.8155057734901152,
   "geo_z": 0.5079894413412567,
   "pest_hist": 1979.2666666666667,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -1798,7 +1798,7 @@
   ]
  },
  "PER": {
-  "nom": "Peru",
+  "name": "Peru",
   "iso3": "PER",
   "year": 2013,
   "rain_mm": 1738.0,
@@ -1809,7 +1809,7 @@
   "geo_y": -0.9557086634338672,
   "geo_z": -0.17845876356260937,
   "pest_hist": 16637.756666666668,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -1822,7 +1822,7 @@
   ]
  },
  "PNG": {
-  "nom": "Papua New Guinea",
+  "name": "Papua New Guinea",
   "iso3": "PNG",
   "year": 2013,
   "rain_mm": 3142.0,
@@ -1833,7 +1833,7 @@
   "geo_y": 0.5389653533602934,
   "geo_z": -0.11302980104223652,
   "pest_hist": 105.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Potatoes",
@@ -1844,7 +1844,7 @@
   ]
  },
  "POL": {
-  "nom": "Poland",
+  "name": "Poland",
   "iso3": "POL",
   "year": 2013,
   "rain_mm": 600.0,
@@ -1855,7 +1855,7 @@
   "geo_y": 0.20202793546106698,
   "geo_z": 0.786396257005849,
   "pest_hist": 21038.093333333334,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Soybeans",
@@ -1863,7 +1863,7 @@
   ]
  },
  "PRT": {
-  "nom": "Portugal",
+  "name": "Portugal",
   "iso3": "PRT",
   "year": 2013,
   "rain_mm": 854.0,
@@ -1874,7 +1874,7 @@
   "geo_y": -0.1217902056464656,
   "geo_z": 0.635943536694728,
   "pest_hist": 13414.466666666667,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -1884,7 +1884,7 @@
   ]
  },
  "QAT": {
-  "nom": "Qatar",
+  "name": "Qatar",
   "iso3": "QAT",
   "year": 2013,
   "rain_mm": 74.0,
@@ -1895,14 +1895,14 @@
   "geo_y": 0.7074255883462907,
   "geo_z": 0.427673421688682,
   "pest_hist": 68.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Wheat"
   ]
  },
  "ROU": {
-  "nom": "Romania",
+  "name": "Romania",
   "iso3": "ROU",
   "year": 2013,
   "rain_mm": 637.0,
@@ -1913,7 +1913,7 @@
   "geo_y": 0.29649236553037367,
   "geo_z": 0.7159364830218311,
   "pest_hist": 6750.266666666666,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -1923,7 +1923,7 @@
   ]
  },
  "RUS": {
-  "nom": "Russian Federation",
+  "name": "Russian Federation",
   "iso3": "RUS",
   "year": 2013,
   "rain_mm": 460.0,
@@ -1934,7 +1934,7 @@
   "geo_y": 0.42990823471671136,
   "geo_z": 0.8358073613682703,
   "pest_hist": 25961.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -1944,7 +1944,7 @@
   ]
  },
  "RWA": {
-  "nom": "Rwanda",
+  "name": "Rwanda",
   "iso3": "RWA",
   "year": 2013,
   "rain_mm": 1212.0,
@@ -1955,7 +1955,7 @@
   "geo_y": 0.49361642012475215,
   "geo_z": -0.036294875065575834,
   "pest_hist": 686.9900000000001,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Potatoes",
@@ -1968,7 +1968,7 @@
   ]
  },
  "SAU": {
-  "nom": "Saudi Arabia",
+  "name": "Saudi Arabia",
   "iso3": "SAU",
   "year": 2013,
   "rain_mm": 59.0,
@@ -1979,7 +1979,7 @@
   "geo_y": 0.6292281738616624,
   "geo_z": 0.41183247328757494,
   "pest_hist": 4840.3,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Sorghum",
@@ -1987,7 +1987,7 @@
   ]
  },
  "SDN": {
-  "nom": "Sudan",
+  "name": "Sudan",
   "iso3": "SDN",
   "year": 2013,
   "rain_mm": 1712.0,
@@ -1998,7 +1998,7 @@
   "geo_y": 0.5004351649854489,
   "geo_z": 0.24327644775122917,
   "pest_hist": 2469.47,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -2009,7 +2009,7 @@
   ]
  },
  "SEN": {
-  "nom": "Senegal",
+  "name": "Senegal",
   "iso3": "SEN",
   "year": 2013,
   "rain_mm": 686.0,
@@ -2020,7 +2020,7 @@
   "geo_y": -0.2672602326336359,
   "geo_z": 0.25156263237634396,
   "pest_hist": 741.8466666666667,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Potatoes",
@@ -2030,7 +2030,7 @@
   ]
  },
  "SLV": {
-  "nom": "El Salvador",
+  "name": "El Salvador",
   "iso3": "SLV",
   "year": 2013,
   "rain_mm": 1784.0,
@@ -2041,7 +2041,7 @@
   "geo_y": -0.9713797934854266,
   "geo_z": 0.23700770976739471,
   "pest_hist": 3141.626666666667,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -2053,7 +2053,7 @@
   ]
  },
  "SUR": {
-  "nom": "Suriname",
+  "name": "Suriname",
   "iso3": "SUR",
   "year": 2013,
   "rain_mm": 2331.0,
@@ -2064,7 +2064,7 @@
   "geo_y": -0.8168173838733821,
   "geo_z": 0.10140356989986499,
   "pest_hist": 952.27,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -2074,7 +2074,7 @@
   ]
  },
  "SVK": {
-  "nom": "Slovakia",
+  "name": "Slovakia",
   "iso3": "SVK",
   "year": 2013,
   "rain_mm": 824.0,
@@ -2085,7 +2085,7 @@
   "geo_y": 0.21270604547630464,
   "geo_z": 0.7503418653150404,
   "pest_hist": 1618.3433333333332,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Sorghum",
@@ -2094,7 +2094,7 @@
   ]
  },
  "SVN": {
-  "nom": "Slovenia",
+  "name": "Slovenia",
   "iso3": "SVN",
   "year": 2013,
   "rain_mm": 1162.0,
@@ -2105,7 +2105,7 @@
   "geo_y": 0.17883557504805025,
   "geo_z": 0.7211559444851576,
   "pest_hist": 1090.7866666666666,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Soybeans",
@@ -2113,7 +2113,7 @@
   ]
  },
  "SWE": {
-  "nom": "Sweden",
+  "name": "Sweden",
   "iso3": "SWE",
   "year": 2013,
   "rain_mm": 624.0,
@@ -2124,13 +2124,13 @@
   "geo_y": 0.13927730617371756,
   "geo_z": 0.8569874662805391,
   "pest_hist": 1859.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Potatoes",
    "Wheat"
   ]
  },
  "SYR": {
-  "nom": "Syrian Arab Republic",
+  "name": "Syrian Arab Republic",
   "iso3": "SYR",
   "year": 2013,
   "rain_mm": 252.0,
@@ -2141,7 +2141,7 @@
   "geo_y": 0.4951787179330724,
   "geo_z": 0.5721458734455162,
   "pest_hist": 974.79,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -2151,7 +2151,7 @@
   ]
  },
  "THA": {
-  "nom": "Thailand",
+  "name": "Thailand",
   "iso3": "THA",
   "year": 2013,
   "rain_mm": 1622.0,
@@ -2162,7 +2162,7 @@
   "geo_y": 0.9531758298262091,
   "geo_z": 0.240736275485307,
   "pest_hist": 75366.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Potatoes",
@@ -2173,7 +2173,7 @@
   ]
  },
  "TJK": {
-  "nom": "Tajikistan",
+  "name": "Tajikistan",
   "iso3": "TJK",
   "year": 2013,
   "rain_mm": 691.0,
@@ -2184,7 +2184,7 @@
   "geo_y": 0.7294841770109579,
   "geo_z": 0.6260595781701602,
   "pest_hist": 263.7666666666667,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -2194,7 +2194,7 @@
   ]
  },
  "TUN": {
-  "nom": "Tunisia",
+  "name": "Tunisia",
   "iso3": "TUN",
   "year": 2013,
   "rain_mm": 207.0,
@@ -2205,14 +2205,14 @@
   "geo_y": 0.14280899843757286,
   "geo_z": 0.5848161087376677,
   "pest_hist": 422.24,
-  "cultures_observees": [
+  "observed_crops": [
    "Potatoes",
    "Sorghum",
    "Wheat"
   ]
  },
  "TUR": {
-  "nom": "Turkey",
+  "name": "Turkey",
   "iso3": "TUR",
   "year": 2013,
   "rain_mm": 593.0,
@@ -2223,7 +2223,7 @@
   "geo_y": 0.4283491208430829,
   "geo_z": 0.6333808726275502,
   "pest_hist": 40233.236666666664,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -2233,7 +2233,7 @@
   ]
  },
  "TZA": {
-  "nom": "United Republic of Tanzania",
+  "name": "United Republic of Tanzania",
   "iso3": "TZA",
   "year": 2013,
   "rain_mm": 1071.0,
@@ -2244,7 +2244,7 @@
   "geo_y": 0.5739878146200131,
   "geo_z": -0.09966708360440281,
   "pest_hist": 1.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -2258,7 +2258,7 @@
   ]
  },
  "UGA": {
-  "nom": "Uganda",
+  "name": "Uganda",
   "iso3": "UGA",
   "year": 2013,
   "rain_mm": 1180.0,
@@ -2269,7 +2269,7 @@
   "geo_y": 0.5294367606775675,
   "geo_z": 0.012042480750309672,
   "pest_hist": 88.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -2282,7 +2282,7 @@
   ]
  },
  "UKR": {
-  "nom": "Ukraine",
+  "name": "Ukraine",
   "iso3": "UKR",
   "year": 2013,
   "rain_mm": 565.0,
@@ -2293,7 +2293,7 @@
   "geo_y": 0.3519897374376961,
   "geo_z": 0.756310380251472,
   "pest_hist": 77613.7,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -2303,7 +2303,7 @@
   ]
  },
  "URY": {
-  "nom": "Uruguay",
+  "name": "Uruguay",
   "iso3": "URY",
   "year": 2013,
   "rain_mm": 1300.0,
@@ -2314,7 +2314,7 @@
   "geo_y": -0.6930326033911764,
   "geo_z": -0.5548444274479993,
   "pest_hist": 18668.446666666667,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -2325,7 +2325,7 @@
   ]
  },
  "USA": {
-  "nom": "United States of America",
+  "name": "United States of America",
   "iso3": "USA",
   "year": 2013,
   "rain_mm": 715.0,
@@ -2336,7 +2336,7 @@
   "geo_y": -0.7744289755527626,
   "geo_z": 0.6320293026648509,
   "pest_hist": 391298.7,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -2347,7 +2347,7 @@
   ]
  },
  "VEN": {
-  "nom": "Venezuela (Bolivarian Republic of)",
+  "name": "Venezuela (Bolivarian Republic of)",
   "iso3": "VEN",
   "year": 2013,
   "rain_mm": 2044.0,
@@ -2358,7 +2358,7 @@
   "geo_y": -0.9152004582769558,
   "geo_z": 0.16694083294778028,
   "pest_hist": 3928.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Plantains and others",
@@ -2372,7 +2372,7 @@
   ]
  },
  "VNM": {
-  "nom": "Viet Nam",
+  "name": "Viet Nam",
   "iso3": "VNM",
   "year": 2013,
   "rain_mm": 1821.0,
@@ -2383,7 +2383,7 @@
   "geo_y": 0.923752083646146,
   "geo_z": 0.2699282944604963,
   "pest_hist": 19154.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Potatoes",
@@ -2393,7 +2393,7 @@
   ]
  },
  "ZAF": {
-  "nom": "South Africa",
+  "name": "South Africa",
   "iso3": "ZAF",
   "year": 2013,
   "rain_mm": 495.0,
@@ -2404,7 +2404,7 @@
   "geo_y": 0.4044650733875335,
   "geo_z": -0.4759312353644959,
   "pest_hist": 26857.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Maize",
    "Potatoes",
    "Rice, paddy",
@@ -2415,7 +2415,7 @@
   ]
  },
  "ZMB": {
-  "nom": "Zambia",
+  "name": "Zambia",
   "iso3": "ZMB",
   "year": 2013,
   "rain_mm": 1020.0,
@@ -2426,7 +2426,7 @@
   "geo_y": 0.45704177468788115,
   "geo_z": -0.23395446353220542,
   "pest_hist": 1670.0,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Potatoes",
@@ -2438,7 +2438,7 @@
   ]
  },
  "ZWE": {
-  "nom": "Zimbabwe",
+  "name": "Zimbabwe",
   "iso3": "ZWE",
   "year": 2013,
   "rain_mm": 657.0,
@@ -2449,7 +2449,7 @@
   "geo_y": 0.4772362395338278,
   "geo_z": -0.3202823322984226,
   "pest_hist": 3340.35,
-  "cultures_observees": [
+  "observed_crops": [
    "Cassava",
    "Maize",
    "Potatoes",

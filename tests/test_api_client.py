@@ -9,108 +9,108 @@ import requests
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 import api_client  # noqa: E402
 
-DEFAUTS_FRA = {
-    "temperature_c": 11.32, "pluie_mm": 867.0, "pesticides_t": 62163.2,
-    "prix": [{"culture": "Maize", "prix_usd_t": 247.0, "prix_source": "pays"},
-             {"culture": "Wheat", "prix_usd_t": 246.4, "prix_source": "pays"}],
+FRA_DEFAULTS = {
+    "temperature_c": 11.32, "rain_mm": 867.0, "pesticides_t": 62163.2,
+    "prices": [{"crop": "Maize", "price_usd_t": 247.0, "price_source": "pays"},
+             {"crop": "Wheat", "price_usd_t": 246.4, "price_source": "pays"}],
 }
 
 
-class FausseReponse:
-    def __init__(self, statut, corps):
-        self.status_code, self._corps = statut, corps
-        self.ok = statut < 400
+class FakeResponse:
+    def __init__(self, status, body):
+        self.status_code, self._body = status, body
+        self.ok = status < 400
 
     def json(self):
-        return self._corps
+        return self._body
 
 
 @pytest.fixture
-def appels(monkeypatch):
+def calls(monkeypatch):
     """Record the calls, and answer with whatever the test queued."""
-    enregistres, reponses = [], []
+    recorded, responses = [], []
 
-    def faux_request(methode, url, json=None, timeout=None):
-        enregistres.append({"methode": methode, "url": url, "json": json, "timeout": timeout})
-        reponse = reponses.pop(0)
-        if isinstance(reponse, Exception):
-            raise reponse
-        return reponse
+    def fake_request(method, url, json=None, timeout=None):
+        recorded.append({"method": method, "url": url, "json": json, "timeout": timeout})
+        response = responses.pop(0)
+        if isinstance(response, Exception):
+            raise response
+        return response
 
-    monkeypatch.setattr(api_client.requests, "request", faux_request)
-    return enregistres, reponses
+    monkeypatch.setattr(api_client.requests, "request", fake_request)
+    return recorded, responses
 
 
 # --------------------------------------------------------------------------- #
 # Only send what changed
 # --------------------------------------------------------------------------- #
 
-def test_rien_de_modifie():
-    saisie = {"temperature_c": 11.32, "pluie_mm": 867.0, "pesticides_t": 62163.2,
-              "prix_usd_t": {"Maize": 247.0, "Wheat": 246.4}}
-    assert api_client.champs_modifies(saisie, DEFAUTS_FRA) == {}
+def test_nothing_changed():
+    entered = {"temperature_c": 11.32, "rain_mm": 867.0, "pesticides_t": 62163.2,
+              "price_usd_t": {"Maize": 247.0, "Wheat": 246.4}}
+    assert api_client.changed_fields(entered, FRA_DEFAULTS) == {}
 
 
-def test_seules_les_modifications_partent():
-    saisie = {"temperature_c": 13.0, "pluie_mm": 867.0, "pesticides_t": 62163.2,
-              "prix_usd_t": {"Maize": 247.0, "Wheat": 300.0}}
-    assert api_client.champs_modifies(saisie, DEFAUTS_FRA) == {
-        "temperature_c": 13.0, "prix_usd_t": {"Wheat": 300.0}}
+def test_only_changes_are_sent():
+    entered = {"temperature_c": 13.0, "rain_mm": 867.0, "pesticides_t": 62163.2,
+              "price_usd_t": {"Maize": 247.0, "Wheat": 300.0}}
+    assert api_client.changed_fields(entered, FRA_DEFAULTS) == {
+        "temperature_c": 13.0, "price_usd_t": {"Wheat": 300.0}}
 
 
 # --------------------------------------------------------------------------- #
 # Calls and errors
 # --------------------------------------------------------------------------- #
 
-def test_url_lue_dans_l_environnement(monkeypatch, appels):
-    enregistres, reponses = appels
+def test_url_read_from_the_environment(monkeypatch, calls):
+    recorded, responses = calls
     monkeypatch.setenv("API_URL", "http://api:8000/")
-    reponses.append(FausseReponse(200, {"statut": "ok"}))
-    api_client.sante()
-    assert enregistres[0]["url"] == "http://api:8000/health"
+    responses.append(FakeResponse(200, {"status": "ok"}))
+    api_client.health()
+    assert recorded[0]["url"] == "http://api:8000/health"
 
 
-def test_recommander_envoie_pays_critere_et_modifications(appels):
-    enregistres, reponses = appels
-    reponses.append(FausseReponse(200, {"classement": []}))
-    api_client.recommander("FRA", "produit_brut", {"temperature_c": 13.0})
-    assert enregistres[0]["json"] == {"iso3": "FRA", "critere": "produit_brut", "temperature_c": 13.0}
-    assert enregistres[0]["timeout"] == api_client.DELAI_CALCUL
+def test_recommend_sends_country_criterion_and_changes(calls):
+    recorded, responses = calls
+    responses.append(FakeResponse(200, {"ranking": []}))
+    api_client.recommend("FRA", "gross_product", {"temperature_c": 13.0})
+    assert recorded[0]["json"] == {"iso3": "FRA", "criterion": "gross_product", "temperature_c": 13.0}
+    assert recorded[0]["timeout"] == api_client.COMPUTE_TIMEOUT
 
 
-def test_api_injoignable(appels):
-    _, reponses = appels
-    reponses.append(requests.ConnectionError("refus"))
-    with pytest.raises(api_client.ErreurAPI, match="ne répond pas"):
-        api_client.pays()
+def test_api_unreachable(calls):
+    _, responses = calls
+    responses.append(requests.ConnectionError("refus"))
+    with pytest.raises(api_client.APIError, match="ne répond pas"):
+        api_client.countries()
 
 
-def test_delai_depasse(appels):
-    _, reponses = appels
-    reponses.append(requests.Timeout("lent"))
-    with pytest.raises(api_client.ErreurAPI, match="à temps"):
-        api_client.predire("Wheat", 600, 22, True, False)
+def test_timeout(calls):
+    _, responses = calls
+    responses.append(requests.Timeout("lent"))
+    with pytest.raises(api_client.APIError, match="à temps"):
+        api_client.predict("Wheat", 600, 22, True, False)
 
 
-def test_404_redonne_le_message_de_l_api(appels):
-    _, reponses = appels
-    reponses.append(FausseReponse(404, {"detail": "ZZZ n'est pas un pays servi."}))
-    with pytest.raises(api_client.ErreurAPI) as erreur:
-        api_client.contexte_pays("ZZZ")
-    assert erreur.value.statut == 404
-    assert "ZZZ" in erreur.value.message
+def test_404_returns_the_api_message(calls):
+    _, responses = calls
+    responses.append(FakeResponse(404, {"detail": "ZZZ n'est pas un pays servi."}))
+    with pytest.raises(api_client.APIError) as error:
+        api_client.country_context("ZZZ")
+    assert error.value.status == 404
+    assert "ZZZ" in error.value.message
 
 
-def test_422_lisible(appels):
-    _, reponses = appels
-    reponses.append(FausseReponse(422, {"detail": [
-        {"loc": ["body", "pluie_mm"], "msg": "Input should be greater than or equal to 0"}]}))
-    with pytest.raises(api_client.ErreurAPI, match="pluie_mm : Input should be"):
-        api_client.predire("Wheat", -1, 22, True, False)
+def test_422_is_readable(calls):
+    _, responses = calls
+    responses.append(FakeResponse(422, {"detail": [
+        {"loc": ["body", "rain_mm"], "msg": "Input should be greater than or equal to 0"}]}))
+    with pytest.raises(api_client.APIError, match="rain_mm : Input should be"):
+        api_client.predict("Wheat", -1, 22, True, False)
 
 
-def test_503_pendant_le_demarrage(appels):
-    _, reponses = appels
-    reponses.append(FausseReponse(503, {"detail": "modèles non chargés"}))
-    with pytest.raises(api_client.ErreurAPI, match="réessayez"):
-        api_client.sante()
+def test_503_during_startup(calls):
+    _, responses = calls
+    responses.append(FakeResponse(503, {"detail": "modèles non chargés"}))
+    with pytest.raises(api_client.APIError, match="réessayez"):
+        api_client.health()

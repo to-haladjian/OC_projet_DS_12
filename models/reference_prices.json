@@ -1,0 +1,2587 @@
+{
+ "unit": "USD/t",
+ "source": "https://bulks-faostat.fao.org/production/Prices_E_All_Data_(Normalized).zip",
+ "rule": "mediane des 5 dernieres annees connues du pays, sinon mediane mondiale",
+ "world_median": {
+  "Maize": 287.3,
+  "Wheat": 279.0,
+  "Rice, paddy": 377.3,
+  "Soybeans": 512.6
+ },
+ "countries": {
+  "ALB": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 360.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 360.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 715.15,
+    "price_source": "pays"
+   }
+  ],
+  "ARG": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 176.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 213.9,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 262.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 308.8,
+    "price_source": "pays"
+   }
+  ],
+  "ARM": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 372.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "AUS": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 244.85,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 235.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 279.6,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 472.70000000000005,
+    "price_source": "pays"
+   }
+  ],
+  "AUT": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 207.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 218.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 481.0,
+    "price_source": "pays"
+   }
+  ],
+  "AZE": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 327.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 336.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 338.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "BDI": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 377.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 553.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 372.7,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 482.3,
+    "price_source": "pays"
+   }
+  ],
+  "BEL": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 263.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "BFA": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "BGD": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 201.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 269.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 210.6,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 586.95,
+    "price_source": "pays"
+   }
+  ],
+  "BGR": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 207.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 213.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 351.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 583.6,
+    "price_source": "pays"
+   }
+  ],
+  "BHR": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "BHS": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "BLR": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 277.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 144.4,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "BOL": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 293.4,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 302.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 376.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 314.6,
+    "price_source": "pays"
+   }
+  ],
+  "BRA": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 202.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 233.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 339.2,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 425.4,
+    "price_source": "pays"
+   }
+  ],
+  "BWA": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 292.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "CAF": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 582.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 1225.35,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "CAN": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 224.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 237.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 446.5,
+    "price_source": "pays"
+   }
+  ],
+  "CHE": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 320.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 506.6,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "CHL": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 197.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 256.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 245.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "CHN": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 321.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 321.4,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 403.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 738.5,
+    "price_source": "pays"
+   }
+  ],
+  "CIV": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 320.2,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 492.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "CMR": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 390.25,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 310.45,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "COG": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 1642.2,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 1315.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "COL": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 374.9,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 446.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 482.6,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 631.6,
+    "price_source": "pays"
+   }
+  ],
+  "CZE": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 241.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 246.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "DEU": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 258.9,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 269.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "DNK": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 266.2,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "DOM": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 391.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 459.2,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "DZA": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 605.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "ECU": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 315.9,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 380.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 340.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 505.6,
+    "price_source": "pays"
+   }
+  ],
+  "EGY": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 326.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 376.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 326.9,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 483.2,
+    "price_source": "pays"
+   }
+  ],
+  "ERI": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "ESP": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 264.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 283.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 365.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 467.2,
+    "price_source": "pays"
+   }
+  ],
+  "EST": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 231.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "FIN": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 260.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "FRA": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 247.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 246.4,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 356.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 552.1,
+    "price_source": "pays"
+   }
+  ],
+  "GBR": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 290.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "GHA": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 382.4,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 503.4,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "GIN": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "GNB": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "GRC": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 275.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 290.6,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 296.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "GTM": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "GUY": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "HND": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "HRV": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 189.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 210.4,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 455.7,
+    "price_source": "pays"
+   }
+  ],
+  "HTI": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "HUN": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 218.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 213.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 299.9,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 476.9,
+    "price_source": "pays"
+   }
+  ],
+  "IDN": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 333.2,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 943.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 739.2,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 738.4,
+    "price_source": "pays"
+   }
+  ],
+  "IND": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "IRL": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 210.7,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "IRN": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 398.7,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 321.4,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 895.7,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 533.4,
+    "price_source": "pays"
+   }
+  ],
+  "IRQ": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 550.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 589.55,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 644.9,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "ITA": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 297.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 328.9,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 529.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "JAM": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 2658.25,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 972.9,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "JPN": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 633.4,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 2388.6,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 1490.1,
+    "price_source": "pays"
+   }
+  ],
+  "KAZ": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 184.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 180.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 246.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 346.1,
+    "price_source": "pays"
+   }
+  ],
+  "KEN": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 309.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 379.7,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 749.4,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "KOR": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 517.0999999999999,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 1598.8000000000002,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 2717.4,
+    "price_source": "pays"
+   }
+  ],
+  "LAO": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 161.2,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 288.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 865.0,
+    "price_source": "pays"
+   }
+  ],
+  "LBN": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 298.15,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 391.4,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "LBY": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "LKA": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 306.4,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 263.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 663.8,
+    "price_source": "pays"
+   }
+  ],
+  "LSO": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "LTU": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 239.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 238.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "LVA": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 243.7,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "MAR": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 299.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 305.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "MDA": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 182.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 146.6,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 413.9,
+    "price_source": "pays"
+   }
+  ],
+  "MDG": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 216.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 314.4,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "MEX": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 263.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 274.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 286.6,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 493.8,
+    "price_source": "pays"
+   }
+  ],
+  "MKD": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 279.4,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 305.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 459.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 814.4,
+    "price_source": "pays"
+   }
+  ],
+  "MLI": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 212.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 329.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "MOZ": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "MRT": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "MUS": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "MWI": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 228.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 1089.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 890.5,
+    "price_source": "pays"
+   }
+  ],
+  "MYS": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 179.7,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 238.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "NAM": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "NER": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 467.85,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 717.9,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 822.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "NIC": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 292.6,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 384.7,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 375.25,
+    "price_source": "pays"
+   }
+  ],
+  "NLD": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 139.7,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 258.7,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "NOR": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 426.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "NPL": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 264.7,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 257.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 252.7,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 766.0,
+    "price_source": "pays"
+   }
+  ],
+  "NZL": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 365.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 312.9,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "PAK": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 223.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 290.20000000000005,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 423.05,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 404.1,
+    "price_source": "pays"
+   }
+  ],
+  "PER": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 454.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 457.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 322.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 693.5,
+    "price_source": "pays"
+   }
+  ],
+  "PNG": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "POL": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 212.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 252.2,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "PRT": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 271.6,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 285.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 360.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "QAT": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "ROU": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 299.9,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 255.4,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 426.4,
+    "price_source": "pays"
+   }
+  ],
+  "RUS": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 201.4,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 173.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 364.6,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 393.5,
+    "price_source": "pays"
+   }
+  ],
+  "RWA": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 407.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 603.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 979.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 639.0,
+    "price_source": "pays"
+   }
+  ],
+  "SAU": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 372.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "SDN": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 547.2,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "SEN": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 328.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 324.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "SLV": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 295.2,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 366.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "SUR": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 1790.9,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 245.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 2609.8,
+    "price_source": "pays"
+   }
+  ],
+  "SVK": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 229.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 231.6,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 471.6,
+    "price_source": "pays"
+   }
+  ],
+  "SVN": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 224.7,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 240.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 506.8,
+    "price_source": "pays"
+   }
+  ],
+  "SWE": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 259.4,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "SYR": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "THA": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 250.2,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 270.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 487.7,
+    "price_source": "pays"
+   }
+  ],
+  "TJK": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 407.75,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 376.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 553.7,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "TUN": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 300.4,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "TUR": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 321.4,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 348.2,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 577.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 548.6,
+    "price_source": "pays"
+   }
+  ],
+  "TZA": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 233.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 437.55,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 402.75,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 790.5,
+    "price_source": "pays"
+   }
+  ],
+  "UGA": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 287.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "UKR": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 157.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 167.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 313.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 367.7,
+    "price_source": "pays"
+   }
+  ],
+  "URY": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 229.6,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 262.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 246.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 484.4,
+    "price_source": "pays"
+   }
+  ],
+  "USA": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 204.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 252.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 320.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 459.0,
+    "price_source": "pays"
+   }
+  ],
+  "VEN": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 690.3,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 472.5,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 657.4,
+    "price_source": "pays"
+   }
+  ],
+  "VNM": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 301.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 295.6,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 847.6,
+    "price_source": "pays"
+   }
+  ],
+  "ZAF": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 207.8,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 316.1,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 437.4,
+    "price_source": "pays"
+   }
+  ],
+  "ZMB": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 168.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 279.0,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 1614.6999999999998,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 512.6,
+    "price_source": "médiane mondiale"
+   }
+  ],
+  "ZWE": [
+   {
+    "crop": "Maize",
+    "price_usd_t": 290.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Wheat",
+    "price_usd_t": 466.0,
+    "price_source": "pays"
+   },
+   {
+    "crop": "Rice, paddy",
+    "price_usd_t": 377.3,
+    "price_source": "médiane mondiale"
+   },
+   {
+    "crop": "Soybeans",
+    "price_usd_t": 410.0,
+    "price_source": "pays"
+   }
+  ]
+ }
+}

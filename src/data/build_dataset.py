@@ -32,11 +32,11 @@ from src.data.crop_mapping import (
     SOURCE_FAO,
     SOURCE_IMPUTED,
 )
-from src.data.preparation import charge as charge_jeu_simule, nettoie
-from src.data.rapport import Rapport
+from src.data.preparation import load as load_simulated, clean
+from src.data.prep_log import PrepLog
 
 #: Agronomic profile columns added to each plot.
-COLONNES_PROFIL = [
+PROFILE_COLUMNS = [
     "crop_ref_yield_t_ha",
     "crop_ref_yield_p25",
     "crop_ref_yield_p75",
@@ -46,7 +46,7 @@ COLONNES_PROFIL = [
 ]
 
 
-def profils_fao(df_b: pd.DataFrame) -> pd.DataFrame:
+def fao_profiles(df_b: pd.DataFrame) -> pd.DataFrame:
     """Summarise CropYield Prediction into one agronomic profile per FAO crop.
 
     The climate descriptors describe the crop's **niche** — the conditions under
@@ -64,62 +64,62 @@ def profils_fao(df_b: pd.DataFrame) -> pd.DataFrame:
     rainfall is constant per country: a raw rank would squash several crops onto
     the same value.
     """
-    pluies = np.sort(df_b["rain_mm"].dropna().to_numpy())
-    rangs = 100.0 * np.arange(len(pluies)) / (len(pluies) - 1)
+    rains = np.sort(df_b["rain_mm"].dropna().to_numpy())
+    ranks = 100.0 * np.arange(len(rains)) / (len(rains) - 1)
 
-    lignes = []
-    for culture, groupe in df_b.groupby("crop"):
-        pluie_mediane = groupe["rain_mm"].median()
-        lignes.append(
+    rows = []
+    for crop, group in df_b.groupby("crop"):
+        median_rain = group["rain_mm"].median()
+        rows.append(
             {
-                "fao_item": culture,
-                "crop_ref_yield_t_ha": groupe["yield_t_ha"].median(),
-                "crop_ref_yield_p25": groupe["yield_t_ha"].quantile(0.25),
-                "crop_ref_yield_p75": groupe["yield_t_ha"].quantile(0.75),
-                "crop_pesticides_intensity": groupe["pesticides_t"].median(),
-                "crop_temp_niche": groupe["avg_temp"].median(),
-                "crop_rain_pctl": float(np.interp(pluie_mediane, pluies, rangs)),
-                "n_observations": len(groupe),
+                "fao_item": crop,
+                "crop_ref_yield_t_ha": group["yield_t_ha"].median(),
+                "crop_ref_yield_p25": group["yield_t_ha"].quantile(0.25),
+                "crop_ref_yield_p75": group["yield_t_ha"].quantile(0.75),
+                "crop_pesticides_intensity": group["pesticides_t"].median(),
+                "crop_temp_niche": group["avg_temp"].median(),
+                "crop_rain_pctl": float(np.interp(median_rain, rains, ranks)),
+                "n_observations": len(group),
             }
         )
     return (
-        pd.DataFrame(lignes)
+        pd.DataFrame(rows)
         .sort_values("crop_ref_yield_t_ha", ascending=False)
         .reset_index(drop=True)
     )
 
 
-def profils_par_culture(df_b: pd.DataFrame) -> pd.DataFrame:
+def profiles_by_crop(df_b: pd.DataFrame) -> pd.DataFrame:
     """Map the FAO profiles onto the 6 crops of the simulated dataset.
 
     Four crops out of six have an FAO equivalent after harmonisation. Barley and
     cotton have none: each takes the profile of a documented donor crop and carries
     `crop_ref_source = 'imputed'`, so that provenance stays visible.
     """
-    fao = profils_fao(df_b).set_index("fao_item")
+    fao = fao_profiles(df_b).set_index("fao_item")
 
-    lignes = []
-    for culture, item in CROP_TO_FAO_ITEM.items():
+    rows = []
+    for crop, item in CROP_TO_FAO_ITEM.items():
         if item is not None:
-            profil = fao.loc[item, COLONNES_PROFIL].to_dict()
-            source, donneuse = SOURCE_FAO, None
+            profile = fao.loc[item, PROFILE_COLUMNS].to_dict()
+            source, donor = SOURCE_FAO, None
         else:
-            regle = IMPUTATION_RULES[culture]
-            profil = fao.loc[regle.donor_item, COLONNES_PROFIL].to_dict()
-            if regle.yield_override_t_ha is not None:
-                reference = regle.yield_override_t_ha
-                etendue = profil["crop_ref_yield_p75"] - profil["crop_ref_yield_p25"]
-                profil["crop_ref_yield_t_ha"] = reference
-                profil["crop_ref_yield_p25"] = reference - etendue / 2
-                profil["crop_ref_yield_p75"] = reference + etendue / 2
-            source, donneuse = SOURCE_IMPUTED, regle.donor_item
-        lignes.append(
-            {"Crop": culture, **profil, "crop_ref_source": source, "donor_item": donneuse}
+            rule = IMPUTATION_RULES[crop]
+            profile = fao.loc[rule.donor_item, PROFILE_COLUMNS].to_dict()
+            if rule.yield_override_t_ha is not None:
+                reference = rule.yield_override_t_ha
+                spread = profile["crop_ref_yield_p75"] - profile["crop_ref_yield_p25"]
+                profile["crop_ref_yield_t_ha"] = reference
+                profile["crop_ref_yield_p25"] = reference - spread / 2
+                profile["crop_ref_yield_p75"] = reference + spread / 2
+            source, donor = SOURCE_IMPUTED, rule.donor_item
+        rows.append(
+            {"Crop": crop, **profile, "crop_ref_source": source, "donor_item": donor}
         )
-    return pd.DataFrame(lignes)
+    return pd.DataFrame(rows)
 
 
-def fusionne(df_a: pd.DataFrame, profils: pd.DataFrame) -> tuple[pd.DataFrame, Rapport]:
+def merge_sources(df_a: pd.DataFrame, profiles: pd.DataFrame) -> tuple[pd.DataFrame, PrepLog]:
     """Join the per-crop profiles to the simulated dataset and derive the niche gap.
 
     `temp_dev_from_niche` is the only variable that truly crosses both sources row
@@ -141,61 +141,61 @@ def fusionne(df_a: pd.DataFrame, profils: pd.DataFrame) -> tuple[pd.DataFrame, R
     kept because it carries the agronomic intent `/recommend` needs, but it is a
     heuristic, not a measured agronomic gap. Step 2 must earn its place or drop it.
     """
-    rapport = Rapport()
-    profil_sans_donneuse = profils.drop(columns=["donor_item"])
+    prep_log = PrepLog()
+    profile_without_donor = profiles.drop(columns=["donor_item"])
 
-    avant = len(df_a)
-    out = df_a.merge(profil_sans_donneuse, on="Crop", how="left", validate="many_to_one")
-    if len(out) != avant:
-        raise AssertionError(f"la jointure a change le nombre de lignes : {avant} -> {len(out)}")
-    rapport.ajoute("jointure", f"{avant:,} lignes conservees, aucun fan-out")
+    before = len(df_a)
+    out = df_a.merge(profile_without_donor, on="Crop", how="left", validate="many_to_one")
+    if len(out) != before:
+        raise AssertionError(f"la jointure a change le nombre de lignes : {before} -> {len(out)}")
+    prep_log.add("jointure", f"{before:,} lignes conservees, aucun fan-out")
 
-    ajoutees = [c for c in profil_sans_donneuse.columns if c != "Crop"]
-    if out[ajoutees].isna().any().any():
+    added = [c for c in profile_without_donor.columns if c != "Crop"]
+    if out[added].isna().any().any():
         raise AssertionError("la jointure a introduit des valeurs manquantes")
-    rapport.ajoute("completude", "aucune valeur manquante dans les colonnes de profil")
+    prep_log.add("completude", "aucune valeur manquante dans les colonnes de profil")
 
     out["temp_dev_from_niche"] = (out["Temperature_Celsius"] - out["crop_temp_niche"]).abs()
     out["crop_ref_source"] = out["crop_ref_source"].astype("category")
-    rapport.ajoute("variable derivee", "temp_dev_from_niche = |temperature - niche|")
+    prep_log.add("variable derivee", "temp_dev_from_niche = |temperature - niche|")
 
-    repartition = out["crop_ref_source"].value_counts().to_dict()
-    rapport.ajoute("provenance", ", ".join(f"{k} : {v:,}" for k, v in repartition.items()))
-    return out, rapport
+    breakdown = out["crop_ref_source"].value_counts().to_dict()
+    prep_log.add("provenance", ", ".join(f"{k} : {v:,}" for k, v in breakdown.items()))
+    return out, prep_log
 
 
-def controle_agronomique(profils: pd.DataFrame) -> None:
+def check_agronomy(profiles: pd.DataFrame) -> None:
     """Check that the profiles stay consistent with agronomic knowledge.
 
     These sanity checks guard against a silent regression: if the rebuild of the
     CropYield Prediction dataset changes, an aberrant order must make the build
     fail rather than go unnoticed.
     """
-    profil = profils.set_index("Crop")
+    profile = profiles.set_index("Crop")
 
-    niches = profil["crop_temp_niche"]
+    niches = profile["crop_temp_niche"]
     if not niches["Wheat"] < niches["Maize"] < niches["Rice"]:
         raise AssertionError(
             "niches thermiques incoherentes : attendu ble < mais < riz, obtenu "
             f"{niches['Wheat']:.1f} / {niches['Maize']:.1f} / {niches['Rice']:.1f}"
         )
 
-    pluies = profil["crop_rain_pctl"]
-    if not pluies["Wheat"] < pluies["Rice"]:
+    rains = profile["crop_rain_pctl"]
+    if not rains["Wheat"] < rains["Rice"]:
         raise AssertionError(
             "percentiles de pluie incoherents : le ble doit etre plus sec que le riz "
-            f"({pluies['Wheat']:.1f} vs {pluies['Rice']:.1f})"
+            f"({rains['Wheat']:.1f} vs {rains['Rice']:.1f})"
         )
 
-    rendements = profil["crop_ref_yield_t_ha"]
-    if not rendements["Rice"] > rendements["Maize"] > rendements["Soybean"]:
+    yields = profile["crop_ref_yield_t_ha"]
+    if not yields["Rice"] > yields["Maize"] > yields["Soybean"]:
         raise AssertionError(
             "rendements de reference incoherents : attendu riz > mais > soja, obtenu "
-            f"{rendements['Rice']:.2f} / {rendements['Maize']:.2f} / {rendements['Soybean']:.2f}"
+            f"{yields['Rice']:.2f} / {yields['Maize']:.2f} / {yields['Soybean']:.2f}"
         )
 
 
-DICTIONNAIRE: list[tuple[str, str, str, str, str]] = [
+DICTIONARY: list[tuple[str, str, str, str, str]] = [
     # (column, type, unit, origin, description)
     ("Region", "category", "-", "A", "Zone abstraite (North/South/East/West), pas un pays"),
     ("Soil_Type", "category", "-", "A", "Texture du sol : Sandy, Loam, Chalky, Silt, Clay, Peaty"),
@@ -224,10 +224,10 @@ DICTIONNAIRE: list[tuple[str, str, str, str, str]] = [
 ]
 
 
-def ecrit_dictionnaire(chemin=None) -> None:
+def write_dictionary(path=None) -> None:
     """Write the column reference, basis of the step 3 Pydantic schemas."""
-    chemin = chemin or config.DICTIONNAIRE_DONNEES
-    lignes = [
+    path = path or config.DATA_DICTIONARY
+    rows = [
         "# Dictionnaire des donnees — `crop_dataset_consolidated.csv`",
         "",
         "Genere par `src/data/build_dataset.py`. Origine : **A** = Agriculture CropYield,",
@@ -236,38 +236,38 @@ def ecrit_dictionnaire(chemin=None) -> None:
         "| Colonne | Type | Unite | Origine | Description |",
         "|---|---|---|---|---|",
     ]
-    lignes += [f"| `{c}` | {t} | {u} | {o} | {d} |" for c, t, u, o, d in DICTIONNAIRE]
-    chemin.write_text("\n".join(lignes) + "\n", encoding="utf-8")
+    rows += [f"| `{c}` | {t} | {u} | {o} | {d} |" for c, t, u, o, d in DICTIONARY]
+    path.write_text("\n".join(rows) + "\n", encoding="utf-8")
 
 
-def construit(verbeux: bool = True) -> tuple[pd.DataFrame, pd.DataFrame]:
+def build(verbose: bool = True) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Chain the preparation of both datasets, the merge and the checks."""
     def trace(message: str) -> None:
-        if verbeux:
+        if verbose:
             print(message)
 
     trace("Preparation d'Agriculture CropYield ...")
-    df_a, rapport_a = nettoie(charge_jeu_simule())
-    trace(str(rapport_a))
+    df_a, prep_log_a = clean(load_simulated())
+    trace(str(prep_log_a))
 
     trace("\nReconstruction de CropYield Prediction ...")
-    df_b, _ = crop_yield_prediction.construit(verbeux=False)
+    df_b, _ = crop_yield_prediction.build(verbose=False)
     trace(f"  {len(df_b):,} lignes x {df_b.shape[1]} colonnes, {df_b['iso3'].nunique()} pays")
 
     trace("\nProfils agronomiques par culture ...")
-    profils = profils_par_culture(df_b)
-    controle_agronomique(profils)
-    trace(profils.round(2).to_string(index=False))
+    profiles = profiles_by_crop(df_b)
+    check_agronomy(profiles)
+    trace(profiles.round(2).to_string(index=False))
     trace("  controles agronomiques : ordres respectes")
 
     trace("\nFusion ...")
-    consolide, rapport_fusion = fusionne(df_a, profils)
-    trace(str(rapport_fusion))
-    trace(f"\nconsolide : {len(consolide):,} lignes x {consolide.shape[1]} colonnes")
-    return consolide, profils
+    consolidated, merge_log = merge_sources(df_a, profiles)
+    trace(str(merge_log))
+    trace(f"\nconsolide : {len(consolidated):,} lignes x {consolidated.shape[1]} colonnes")
+    return consolidated, profiles
 
 
-def charge_consolide() -> pd.DataFrame:
+def load_consolidated() -> pd.DataFrame:
     """Read the consolidated dataset, from whichever form is available.
 
     The plain CSV is preferred when present — it is faster to read and it is what the
@@ -275,35 +275,35 @@ def charge_consolide() -> pd.DataFrame:
     which is the versioned deliverable, and `read_csv` handles it from the extension
     alone. Either way the DataFrame is identical.
     """
-    chemin = (
-        config.DATASET_CONSOLIDE_CSV
-        if config.DATASET_CONSOLIDE_CSV.exists()
-        else config.DATASET_CONSOLIDE_GZ
+    path = (
+        config.CONSOLIDATED_DATASET_CSV
+        if config.CONSOLIDATED_DATASET_CSV.exists()
+        else config.CONSOLIDATED_DATASET_GZ
     )
-    if not chemin.exists():
+    if not path.exists():
         raise FileNotFoundError(
-            f"dataset consolide absent : ni {config.DATASET_CONSOLIDE_CSV.name} ni "
-            f"{config.DATASET_CONSOLIDE_GZ.name} dans {config.DATA_TRAITE}. "
+            f"dataset consolide absent : ni {config.CONSOLIDATED_DATASET_CSV.name} ni "
+            f"{config.CONSOLIDATED_DATASET_GZ.name} dans {config.PROCESSED_DATA}. "
             "Le regenerer avec `python -m src.data.build_dataset`."
         )
-    return pd.read_csv(chemin)
+    return pd.read_csv(path)
 
 
 def main() -> None:
-    config.DATA_TRAITE.mkdir(parents=True, exist_ok=True)
-    config.RAPPORTS.mkdir(parents=True, exist_ok=True)
+    config.PROCESSED_DATA.mkdir(parents=True, exist_ok=True)
+    config.REPORTS.mkdir(parents=True, exist_ok=True)
 
-    consolide, _ = construit()
-    consolide.to_csv(config.DATASET_CONSOLIDE_CSV, index=False)
-    # Le fichier compresse est le livrable versionne : le CSV en clair depasse la
-    # limite de 100 Mo par fichier de GitHub, le compresse tient en 43 Mo.
-    consolide.to_csv(config.DATASET_CONSOLIDE_GZ, index=False, compression="gzip")
-    ecrit_dictionnaire()
+    consolidated, _ = build()
+    consolidated.to_csv(config.CONSOLIDATED_DATASET_CSV, index=False)
+    # The gzipped file is the versioned deliverable: the plain CSV exceeds GitHub's
+    # 100 MB per-file limit, the gzipped one fits in 43 MB.
+    consolidated.to_csv(config.CONSOLIDATED_DATASET_GZ, index=False, compression="gzip")
+    write_dictionary()
 
-    for chemin in (config.DATASET_CONSOLIDE_CSV, config.DATASET_CONSOLIDE_GZ):
-        taille = chemin.stat().st_size / 1024**2
-        print(f"\necrit {chemin.relative_to(config.RACINE)} ({taille:.1f} Mo)")
-    print(f"ecrit {config.DICTIONNAIRE_DONNEES.relative_to(config.RACINE)}")
+    for path in (config.CONSOLIDATED_DATASET_CSV, config.CONSOLIDATED_DATASET_GZ):
+        size_mb = path.stat().st_size / 1024**2
+        print(f"\necrit {path.relative_to(config.ROOT)} ({size_mb:.1f} Mo)")
+    print(f"ecrit {config.DATA_DICTIONARY.relative_to(config.ROOT)}")
 
 
 if __name__ == "__main__":

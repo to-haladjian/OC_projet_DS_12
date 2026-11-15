@@ -4,7 +4,7 @@ This module is the single reference: the step 2 notebooks and the step 3 API dra
 the same lists from it. Do not redefine a feature set elsewhere.
 
 It also holds the **dry matter table**, which makes yields comparable across crops
-(see :data:`MATIERE_SECHE`).
+(see :data:`DRY_MATTER`).
 """
 
 from __future__ import annotations
@@ -13,11 +13,11 @@ from __future__ import annotations
 # /predict — simulated dataset
 # --------------------------------------------------------------------------- #
 
-CIBLE_PREDICT = "Yield_tons_per_hectare"
+PRACTICE_TARGET = "Yield_tons_per_hectare"
 
 #: The 4 variables carrying the signal, established in step 1 and confirmed by the
 #: ablation of notebook 07. They are also the 4 the interface will ask for.
-PREDICT_RETENUES = [
+PRACTICE_SELECTED = [
     "Rainfall_mm",
     "Temperature_Celsius",
     "Fertilizer_Used",
@@ -25,13 +25,13 @@ PREDICT_RETENUES = [
 ]
 
 #: Variables with no measurable effect, kept in the dataset but excluded from the model.
-PREDICT_SANS_EFFET = ["Days_to_Harvest"]
-PREDICT_CATEGORIELLES = ["Region", "Soil_Type", "Crop", "Weather_Condition"]
+PRACTICE_NO_EFFECT = ["Days_to_Harvest"]
+PRACTICE_CATEGORICAL = ["Region", "Soil_Type", "Crop", "Weather_Condition"]
 
 #: Enrichment columns from the FAO dataset. The ablation shows they add nothing to this
 #: target: the simulated yield does not depend on the crop, and they are collinear with
 #: `Crop`. They stay in the consolidated dataset as documentation.
-PREDICT_ENRICHISSEMENT = [
+PRACTICE_ENRICHMENT = [
     "crop_ref_yield_t_ha",
     "crop_ref_yield_p25",
     "crop_ref_yield_p75",
@@ -42,26 +42,26 @@ PREDICT_ENRICHISSEMENT = [
 ]
 
 #: Sets compared by the ablation of notebook 07. The names serve as MLflow `feature_set`.
-PREDICT_JEUX = {
-    "retenues": PREDICT_RETENUES,
-    "retenues_duree": PREDICT_RETENUES + PREDICT_SANS_EFFET,
-    "retenues_categorielles": PREDICT_RETENUES + PREDICT_CATEGORIELLES,
-    "retenues_enrichissement": PREDICT_RETENUES + PREDICT_ENRICHISSEMENT,
-    "toutes": PREDICT_RETENUES + PREDICT_SANS_EFFET + PREDICT_CATEGORIELLES + PREDICT_ENRICHISSEMENT,
+PRACTICE_FEATURE_SETS = {
+    "selected": PRACTICE_SELECTED,
+    "selected_duration": PRACTICE_SELECTED + PRACTICE_NO_EFFECT,
+    "selected_categorical": PRACTICE_SELECTED + PRACTICE_CATEGORICAL,
+    "selected_enrichment": PRACTICE_SELECTED + PRACTICE_ENRICHMENT,
+    "all": PRACTICE_SELECTED + PRACTICE_NO_EFFECT + PRACTICE_CATEGORICAL + PRACTICE_ENRICHMENT,
 }
 
 # --------------------------------------------------------------------------- #
 # /recommend — historical dataset
 # --------------------------------------------------------------------------- #
 
-CIBLE_RECOMMEND = "yield_t_ha"
+YIELD_TARGET = "yield_t_ha"
 
 #: Original variables of the rebuilt dataset.
-RECOMMEND_CONDITIONS = ["crop", "avg_temp", "rain_mm", "pesticides_t"]
+YIELD_CONDITIONS = ["crop", "avg_temp", "rain_mm", "pesticides_t"]
 
-#: Derived variables, built by `src.models.historique`.
-RECOMMEND_GEOGRAPHIE = ["lat_abs", "geo_x", "geo_y", "geo_z"]
-RECOMMEND_HISTORIQUE = ["temp_hist", "log_pest_hist"]
+#: Derived variables, built by `src.models.history`.
+YIELD_GEOGRAPHY = ["lat_abs", "geo_x", "geo_y", "geo_z"]
+YIELD_HISTORY = ["temp_hist", "log_pest_hist"]
 
 #: Sets compared by the ablations of notebooks 09 and 10.
 #:
@@ -69,18 +69,18 @@ RECOMMEND_HISTORIQUE = ["temp_hist", "log_pest_hist"]
 #: engineering: this is what allows stating, with measurements, that the final model
 #: receives no country identifier. `year` is kept in the following sets — removing it
 #: clearly costs RMSE, it carries the technological trend.
-RECOMMEND_JEUX = {
-    "conditions": RECOMMEND_CONDITIONS,
-    "conditions_annee": RECOMMEND_CONDITIONS + ["year"],
-    "conditions_pays": RECOMMEND_CONDITIONS + ["iso3"],
-    "conditions_pays_annee": RECOMMEND_CONDITIONS + ["iso3", "year"],
+YIELD_FEATURE_SETS = {
+    "conditions": YIELD_CONDITIONS,
+    "conditions_year": YIELD_CONDITIONS + ["year"],
+    "conditions_country": YIELD_CONDITIONS + ["iso3"],
+    "conditions_country_year": YIELD_CONDITIONS + ["iso3", "year"],
     "log_pesticides": ["crop", "avg_temp", "rain_mm", "log_pesticides", "year"],
-    "geographie": ["crop", "avg_temp", "rain_mm", "log_pesticides", "year"] + RECOMMEND_GEOGRAPHIE,
-    "historique": ["crop", "rain_mm", "year"] + RECOMMEND_HISTORIQUE + RECOMMEND_GEOGRAPHIE,
+    "geography": ["crop", "avg_temp", "rain_mm", "log_pesticides", "year"] + YIELD_GEOGRAPHY,
+    "history": ["crop", "rain_mm", "year"] + YIELD_HISTORY + YIELD_GEOGRAPHY,
 }
 
 #: The 10 crops of the FAO dataset, in alphabetical order.
-RECOMMEND_CULTURES = [
+YIELD_CROPS = [
     "Cassava",
     "Maize",
     "Plantains and others",
@@ -108,7 +108,7 @@ RECOMMEND_CULTURES = [
 #: Bringing each yield back to its dry matter makes crops comparable. Usual agronomic
 #: orders of magnitude (moisture content at harvest); they serve to **rank**, not to
 #: compute a nutritional value.
-MATIERE_SECHE: dict[str, float] = {
+DRY_MATTER: dict[str, float] = {
     "Maize": 0.87,
     "Wheat": 0.87,
     "Rice, paddy": 0.87,
@@ -123,7 +123,7 @@ MATIERE_SECHE: dict[str, float] = {
 
 #: Agronomic group of each crop: a tuber is not ranked directly against a cereal,
 #: even in dry matter.
-GROUPE_CULTURE: dict[str, str] = {
+CROP_GROUP: dict[str, str] = {
     "Maize": "cereale",
     "Wheat": "cereale",
     "Rice, paddy": "cereale",
@@ -137,17 +137,17 @@ GROUPE_CULTURE: dict[str, str] = {
 }
 
 
-def en_matiere_seche(rendement, culture: str) -> float:
+def to_dry_matter(yield_value, crop: str) -> float:
     """Convert a raw yield (t/ha) into tonnes of dry matter per hectare."""
-    return rendement * MATIERE_SECHE[culture]
+    return yield_value * DRY_MATTER[crop]
 
 
-def _controle() -> None:
+def _check() -> None:
     """Every crop in the FAO dataset must have a dry matter share and a group."""
-    for table, nom in ((MATIERE_SECHE, "MATIERE_SECHE"), (GROUPE_CULTURE, "GROUPE_CULTURE")):
-        manquantes = set(RECOMMEND_CULTURES) - set(table)
-        if manquantes:
-            raise ValueError(f"{nom} : cultures absentes {sorted(manquantes)}")
+    for table, name in ((DRY_MATTER, "DRY_MATTER"), (CROP_GROUP, "CROP_GROUP")):
+        missing = set(YIELD_CROPS) - set(table)
+        if missing:
+            raise ValueError(f"{name} : cultures absentes {sorted(missing)}")
 
 
-_controle()
+_check()

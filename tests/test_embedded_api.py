@@ -25,9 +25,9 @@ import json, sys
 sys.path.insert(0, "app")
 import api_client
 print(json.dumps({
-    "url": api_client.url_api(),
-    "sante": api_client.sante(),
-    "rendement": api_client.predire("Wheat", 600, 22, True, False)["rendement_t_ha"],
+    "url": api_client.api_base_url(),
+    "health": api_client.health(),
+    "yield": api_client.predict("Wheat", 600, 22, True, False)["yield_t_ha"],
 }))
 """
 
@@ -46,52 +46,52 @@ app.run()
 assert not app.exception, app.exception
 app.button[0].click().run()
 assert not app.exception, app.exception
-rendement = app.metric[0].value
-erreurs = [e.value for e in app.error]
+yield_text = app.metric[0].value
+errors = [e.value for e in app.error]
 
 app.sidebar.radio[0].set_value("Recommandation").run()
 app.button[0].click().run()
 assert not app.exception, app.exception
-tableau = app.dataframe[0].value
-erreurs += [e.value for e in app.error]
+table = app.dataframe[0].value
+errors += [e.value for e in app.error]
 
-print(json.dumps({"rendement": rendement, "erreurs": erreurs,
-                  "cultures": len(tableau), "premiere": tableau.iloc[0]["libelle"]}))
+print(json.dumps({"yield": yield_text, "errors": errors,
+                  "crops": len(table), "first": table.iloc[0]["label"]}))
 """
 
 
-def _lance(programme):
+def _launch(program):
     """Run a program against the repository, in embedded mode, and read its JSON."""
-    environnement = {**os.environ, "API_EMBEDDED": "1"}
-    environnement.pop("API_URL", None)
+    environment = {**os.environ, "API_EMBEDDED": "1"}
+    environment.pop("API_URL", None)
 
-    acheve = subprocess.run(
-        [sys.executable, "-c", programme],
-        cwd=ROOT, env=environnement, capture_output=True, text=True, timeout=300,
+    completed = subprocess.run(
+        [sys.executable, "-c", program],
+        cwd=ROOT, env=environment, capture_output=True, text=True, timeout=300,
     )
-    assert acheve.returncode == 0, acheve.stderr
-    return json.loads(acheve.stdout.strip().splitlines()[-1])
+    assert completed.returncode == 0, completed.stderr
+    return json.loads(completed.stdout.strip().splitlines()[-1])
 
 
 # --------------------------------------------------------------------------- #
 # Which address the client resolves to
 # --------------------------------------------------------------------------- #
 
-@pytest.mark.parametrize("valeur, attendu", [
+@pytest.mark.parametrize("value, expected", [
     ("1", True), ("true", True), ("TRUE", True), ("oui", True), (" 1 ", True),
     ("0", False), ("", False), ("non", False),
 ])
-def test_embedded_mode_reads_the_flag(monkeypatch, valeur, attendu):
+def test_embedded_mode_reads_the_flag(monkeypatch, value, expected):
     monkeypatch.delenv("API_URL", raising=False)
-    monkeypatch.setenv("API_EMBEDDED", valeur)
-    assert api_client.embedded_mode() is attendu
+    monkeypatch.setenv("API_EMBEDDED", value)
+    assert api_client.embedded_mode() is expected
 
 
 def test_embedded_mode_is_off_by_default(monkeypatch):
     monkeypatch.delenv("API_URL", raising=False)
     monkeypatch.delenv("API_EMBEDDED", raising=False)
     assert api_client.embedded_mode() is False
-    assert api_client.url_api() == api_client.URL_PAR_DEFAUT
+    assert api_client.api_base_url() == api_client.DEFAULT_URL
 
 
 def test_api_url_wins_over_embedded_mode(monkeypatch):
@@ -99,7 +99,7 @@ def test_api_url_wins_over_embedded_mode(monkeypatch):
     monkeypatch.setenv("API_URL", "http://api:8000")
     monkeypatch.setenv("API_EMBEDDED", "1")
     assert api_client.embedded_mode() is False
-    assert api_client.url_api() == "http://api:8000"
+    assert api_client.api_base_url() == "http://api:8000"
 
 
 def test_url_api_delegates_to_the_embedded_module(monkeypatch):
@@ -109,18 +109,18 @@ def test_url_api_delegates_to_the_embedded_module(monkeypatch):
     monkeypatch.delenv("API_URL", raising=False)
     monkeypatch.setenv("API_EMBEDDED", "1")
     monkeypatch.setattr(embedded_api, "start", lambda: "http://127.0.0.1:54321")
-    assert api_client.url_api() == "http://127.0.0.1:54321"
+    assert api_client.api_base_url() == "http://127.0.0.1:54321"
 
 
 def test_start_is_idempotent(monkeypatch):
     """Streamlit replays the script on every click; the server must start once only."""
     import embedded_api
 
-    ouvertures = []
+    openings = []
     monkeypatch.setattr(embedded_api, "_address", "http://127.0.0.1:54321")
-    monkeypatch.setattr(embedded_api, "_free_port", lambda: ouvertures.append(1) or 0)
+    monkeypatch.setattr(embedded_api, "_free_port", lambda: openings.append(1) or 0)
     assert embedded_api.start() == "http://127.0.0.1:54321"
-    assert ouvertures == []
+    assert openings == []
 
 
 # --------------------------------------------------------------------------- #
@@ -128,22 +128,22 @@ def test_start_is_idempotent(monkeypatch):
 # --------------------------------------------------------------------------- #
 
 def test_the_embedded_server_actually_answers():
-    resultat = _lance(PROGRAM)
-    assert resultat["url"].startswith("http://127.0.0.1:")
+    result = _launch(PROGRAM)
+    assert result["url"].startswith("http://127.0.0.1:")
     # Not port 8000: the point is that nothing had to be started beforehand.
-    assert not resultat["url"].endswith(":8000")
-    assert resultat["sante"]["statut"] == "ok"
-    assert resultat["sante"]["scikit_learn"] == resultat["sante"]["scikit_learn_entrainement"]
-    assert 0 < resultat["rendement"] < 100
+    assert not result["url"].endswith(":8000")
+    assert result["health"]["status"] == "ok"
+    assert result["health"]["scikit_learn"] == result["health"]["scikit_learn_training"]
+    assert 0 < result["yield"] < 100
 
 
 def test_the_interface_works_end_to_end_without_any_api_url():
     """The deployment that matters: both screens, served from inside the process."""
-    resultat = _lance(PROGRAM_INTERFACE)
-    assert resultat["erreurs"] == []
-    assert resultat["rendement"].endswith("t/ha")
-    assert resultat["cultures"] == 4
-    assert resultat["premiere"] == "Maïs"
+    result = _launch(PROGRAM_INTERFACE)
+    assert result["errors"] == []
+    assert result["yield"].endswith("t/ha")
+    assert result["crops"] == 4
+    assert result["first"] == "Maïs"
 
 
 def test_the_root_requirements_declare_both_halves():
@@ -153,9 +153,9 @@ def test_the_root_requirements_declare_both_halves():
     interface alone and the embedded API would fail on `import uvicorn`, on the host and
     nowhere else.
     """
-    lignes = {l.strip() for l in (ROOT / "requirements.txt").read_text().splitlines()}
-    assert "-r app/requirements.txt" in lignes
-    assert "-r api/requirements.txt" in lignes
+    rows = {l.strip() for l in (ROOT / "requirements.txt").read_text().splitlines()}
+    assert "-r app/requirements.txt" in rows
+    assert "-r api/requirements.txt" in rows
 
 
 def test_nothing_at_the_root_outranks_the_requirements_file():
@@ -165,9 +165,9 @@ def test_nothing_at_the_root_outranks_the_requirements_file():
     deploy a resolution made from pyproject.toml — which does not list streamlit among
     its default dependencies. The failure would appear only on the host.
     """
-    prioritaires = [f for f in ("uv.lock", "Pipfile", "environment.yml", "environment.yaml")
+    higher_priority = [f for f in ("uv.lock", "Pipfile", "environment.yml", "environment.yaml")
                     if (ROOT / f).exists()]
-    assert prioritaires == [], (
-        f"{prioritaires} passe(nt) avant requirements.txt sur Streamlit Cloud ; "
+    assert higher_priority == [], (
+        f"{higher_priority} passe(nt) avant requirements.txt sur Streamlit Cloud ; "
         "ne pas versionner ce fichier, ou déclarer les dépendances dedans."
     )

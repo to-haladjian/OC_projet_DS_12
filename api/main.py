@@ -23,22 +23,22 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 
 from api import __version__, service
 from api.schemas import (
-    ContextePays, ContextePredict, EntreePredict, EntreeRecommend, Pays, Sante,
-    SortiePredict, SortieRecommend,
+    CountryContext, PredictContext, PredictInput, RecommendInput, Country, Health,
+    PredictOutput, RecommendOutput,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
-journal = logging.getLogger("agritech.api")
+logger = logging.getLogger("agritech.api")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Load models and assets once, before serving the first request."""
-    debut = time.perf_counter()
-    app.state.ressources = service.charge_ressources()
-    journal.info("modeles charges en %.1f s", time.perf_counter() - debut)
+    started_at = time.perf_counter()
+    app.state.resources = service.load_resources()
+    logger.info("modeles charges en %.1f s", time.perf_counter() - started_at)
     yield
-    app.state.ressources = None
+    app.state.resources = None
 
 
 app = FastAPI(
@@ -47,30 +47,30 @@ app = FastAPI(
     description=(
         "Estimation du rendement d'une parcelle (`/predict`) et classement des cultures "
         "pour un pays (`/recommend`). Les valeurs inhabituelles sont acceptées et "
-        "signalées dans `avertissements` ; les valeurs impossibles sont refusées (422)."
+        "signalées dans `warnings` ; les valeurs impossibles sont refusées (422)."
     ),
     lifespan=lifespan,
 )
 
 
 @app.middleware("http")
-async def journalise(request: Request, call_next):
+async def log_request(request: Request, call_next):
     """One log line per request: method, path, status, latency. Stdout only."""
-    debut = time.perf_counter()
-    reponse = await call_next(request)
-    journal.info(
+    started_at = time.perf_counter()
+    response = await call_next(request)
+    logger.info(
         "%s %s -> %d (%.0f ms)", request.method, request.url.path,
-        reponse.status_code, (time.perf_counter() - debut) * 1000,
+        response.status_code, (time.perf_counter() - started_at) * 1000,
     )
-    return reponse
+    return response
 
 
-def ressources(request: Request) -> service.Ressources:
+def resources(request: Request) -> service.Resources:
     """The loaded resources, or a 503 if the service is not ready."""
-    chargees = getattr(request.app.state, "ressources", None)
-    if chargees is None:
+    loaded = getattr(request.app.state, "resources", None)
+    if loaded is None:
         raise HTTPException(status_code=503, detail="modèles non chargés")
-    return chargees
+    return loaded
 
 
 # --------------------------------------------------------------------------- #
@@ -78,22 +78,22 @@ def ressources(request: Request) -> service.Ressources:
 # --------------------------------------------------------------------------- #
 
 @app.get("/", include_in_schema=False)
-def accueil() -> dict:
+def home() -> dict:
     return {"service": app.title, "version": __version__, "documentation": "/docs"}
 
 
-@app.get("/health", response_model=Sante, tags=["service"])
-def sante(r: service.Ressources = Depends(ressources)) -> dict:
+@app.get("/health", response_model=Health, tags=["service"])
+def health(r: service.Resources = Depends(resources)) -> dict:
     """Service state and versions. Used by the Docker healthcheck and the CI."""
     return {
-        "statut": "ok",
-        "version_api": __version__,
-        "modeles": {
-            "predict": r.meta_predict["modele"],
-            "recommend": f"{r.meta_recommend['modele']} ({r.meta_recommend['n_estimators']} arbres)",
+        "status": "ok",
+        "api_version": __version__,
+        "models": {
+            "predict": r.practice_meta["model"],
+            "recommend": f"{r.yield_meta['model']} ({r.yield_meta['n_estimators']} arbres)",
         },
         "scikit_learn": sklearn.__version__,
-        "scikit_learn_entrainement": r.domaine["scikit_learn"],
+        "scikit_learn_training": r.domain["scikit_learn"],
     }
 
 
@@ -101,41 +101,41 @@ def sante(r: service.Ressources = Depends(ressources)) -> dict:
 # /predict
 # --------------------------------------------------------------------------- #
 
-@app.get("/predict/contexte", response_model=ContextePredict, tags=["predict"])
-def predict_contexte(r: service.Ressources = Depends(ressources)) -> dict:
+@app.get("/predict/context", response_model=PredictContext, tags=["predict"])
+def get_predict_context(r: service.Resources = Depends(resources)) -> dict:
     """Crops, bounds and units, to build the `/predict` form."""
-    return service.contexte_predict(r)
+    return service.predict_context(r)
 
 
-@app.post("/predict", response_model=SortiePredict, tags=["predict"])
-def predict(entree: EntreePredict, r: service.Ressources = Depends(ressources)) -> dict:
+@app.post("/predict", response_model=PredictOutput, tags=["predict"])
+def predict(payload: PredictInput, r: service.Resources = Depends(resources)) -> dict:
     """Expected yield of one plot, with a 95 % interval."""
-    return service.predit(r, entree)
+    return service.predict_yield(r, payload)
 
 
 # --------------------------------------------------------------------------- #
 # /recommend
 # --------------------------------------------------------------------------- #
 
-@app.get("/recommend/pays", response_model=list[Pays], tags=["recommend"])
-def recommend_pays(r: service.Ressources = Depends(ressources)) -> list[dict]:
+@app.get("/recommend/countries", response_model=list[Country], tags=["recommend"])
+def get_countries(r: service.Resources = Depends(resources)) -> list[dict]:
     """The served countries."""
-    return service.pays_servis(r)
+    return service.served_countries(r)
 
 
-@app.get("/recommend/pays/{iso3}", response_model=ContextePays, tags=["recommend"])
-def recommend_contexte_pays(iso3: str, r: service.Ressources = Depends(ressources)) -> dict:
+@app.get("/recommend/countries/{iso3}", response_model=CountryContext, tags=["recommend"])
+def get_country_context(iso3: str, r: service.Resources = Depends(resources)) -> dict:
     """A country's default conditions and reference prices, to prefill the form."""
     try:
-        return service.contexte_pays_affichable(r, iso3)
-    except service.PaysInconnu as erreur:
-        raise HTTPException(status_code=404, detail=erreur.args[0]) from erreur
+        return service.display_country_context(r, iso3)
+    except service.UnknownCountry as error:
+        raise HTTPException(status_code=404, detail=error.args[0]) from error
 
 
-@app.post("/recommend", response_model=SortieRecommend, tags=["recommend"])
-def recommend(entree: EntreeRecommend, r: service.Ressources = Depends(ressources)) -> dict:
-    """All rankable crops, sorted by predicted yield (default) or by `critere`."""
+@app.post("/recommend", response_model=RecommendOutput, tags=["recommend"])
+def recommend(payload: RecommendInput, r: service.Resources = Depends(resources)) -> dict:
+    """All rankable crops, sorted by predicted yield (default) or by `criterion`."""
     try:
-        return service.recommande(r, entree)
-    except service.PaysInconnu as erreur:
-        raise HTTPException(status_code=404, detail=erreur.args[0]) from erreur
+        return service.recommend(r, payload)
+    except service.UnknownCountry as error:
+        raise HTTPException(status_code=404, detail=error.args[0]) from error

@@ -13,17 +13,17 @@ def client():
 
 
 @pytest.fixture(scope="session")
-def ressources(client):
-    return client.app.state.ressources
+def resources(client):
+    return client.app.state.resources
 
 
 @pytest.fixture
-def parcelle():
-    return {"culture": "Wheat", "pluie_mm": 600, "temperature_c": 22,
-            "engrais": True, "irrigation": False}
+def parcel():
+    return {"crop": "Wheat", "rain_mm": 600, "temperature_c": 22,
+            "fertilizer": True, "irrigation": False}
 
 
 @pytest.fixture(scope="session")
-def coefficients(ressources):
-    return ressources.meta_predict["coefficients"], ressources.meta_predict["constante"]
+def coefficients(resources):
+    return resources.practice_meta["coefficients"], resources.practice_meta["intercept"]
 
