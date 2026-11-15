@@ -25,9 +25,9 @@ __pycache__/
 
 # MLflow : base de suivi locale et artefacts. Les runs se régénèrent en rejouant
 # les notebooks 07 à 10.
-mlruns/
+mlruns*/
 mlartifacts/
-mlflow.db
+mlflow*.db
 
 # OS / éditeurs
 .DS_Store

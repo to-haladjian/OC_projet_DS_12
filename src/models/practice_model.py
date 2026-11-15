@@ -185,6 +185,10 @@ def train(df: pd.DataFrame | None = None, verbose: bool = True) -> dict:
         all_vars, features.PRACTICE_TARGET,
     )
 
+    cv = evaluation.summarise(evaluation.validate_by_fold(
+        pipeline(LinearRegression(), variables), X_train[variables], y_train,
+        protocol.random_cv(),
+    ))
     model = pipeline(LinearRegression(), variables).fit(X_train[variables], y_train)
     check_generator(model, variables)
 
@@ -206,6 +210,7 @@ def train(df: pd.DataFrame | None = None, verbose: bool = True) -> dict:
         "model": model,
         "variables": variables,
         "scores": scores,
+        "cv": cv,
         "diagnostic": diagnostic,
         "n_train": len(X_train),
         "n_test": len(X_test),
@@ -233,6 +238,7 @@ def save(result: dict) -> None:
         "n_train": result["n_train"],
         "n_test": result["n_test"],
         "scores": result["scores"],
+        "cv_kfold5": result["cv"],
         "noise_sigma": diagnostic.sigma,
         "residual_structure_r2": diagnostic.r2_structure,
         "coefficients": dict(
@@ -249,9 +255,35 @@ def save(result: dict) -> None:
     path.write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
+def log(result: dict) -> str:
+    """Track the practice-effects model as a final evaluation, on the shared schema."""
+    from src import tracking
+
+    tracking.configure(tracking.EXPERIMENT_PRACTICE)
+    return tracking.log_evaluation(
+        f"{tracking.family(result['model'])} — modèle final",
+        tracking.describe(
+            result["model"], tracking.DATASET_SIMULATED, "selected", "kfold5",
+            n_train=result["n_train"], n_test=result["n_test"],
+        ),
+        {
+            **result["cv"], **result["scores"],
+            "residual_structure_r2": result["diagnostic"].r2_structure,
+            "model_size_mb": config.PRACTICE_MODEL_PATH.stat().st_size / 1024**2,
+        },
+        phase="final_evaluation",
+        note=(
+            "Effets des pratiques (engrais, irrigation) sur les parcelles simulées. Un "
+            "boosting entraîné sur le résidu, avec toutes les variables, n'en prédit rien "
+            "(R² ≈ 0) : il ne reste que du bruit. Coefficients conformes au générateur à 2 % près."
+        ),
+    )
+
+
 def main() -> None:
     result = train()
     save(result)
+    log(result)
     size_mb = config.PRACTICE_MODEL_PATH.stat().st_size / 1024
     print(f"\necrit {config.PRACTICE_MODEL_PATH.relative_to(config.ROOT)} ({size_mb:.1f} Ko)")
     print(f"ecrit models/practice_model_metadata.json")

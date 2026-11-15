@@ -20,15 +20,39 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 from sklearn.base import clone
-from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
+from sklearn.metrics import (
+    make_scorer,
+    mean_absolute_error,
+    r2_score,
+    root_mean_squared_error,
+)
 from sklearn.model_selection import cross_validate
 
-#: RMSE and MAE are negative in scikit-learn: a larger score must be better.
+
+def nrmse(y_observed, y_predicted) -> float:
+    """RMSE divided by the mean observed value: an error with no unit.
+
+    The two models of the project predict on different scales — about 4.6 t/ha on the
+    simulated plots, from 1 to 40 t/ha across FAO crops. Their RMSE cannot be read side
+    by side; this ratio can.
+    """
+    return float(root_mean_squared_error(y_observed, y_predicted) / np.mean(y_observed))
+
+
+#: Scorers shared by every cross-validation and every search, so that all tracked runs
+#: carry the same metrics. RMSE, MAE and NRMSE are negated: scikit-learn maximises.
 SCORES = {
     "rmse": "neg_root_mean_squared_error",
     "mae": "neg_mean_absolute_error",
     "r2": "r2",
+    "nrmse": make_scorer(nrmse, greater_is_better=False),
 }
+
+#: Names of the cross-validation metrics every tracked run must carry.
+CV_METRICS = (
+    "cv_rmse_mean", "cv_rmse_std", "cv_mae_mean", "cv_mae_std",
+    "cv_r2_mean", "cv_r2_std", "cv_nrmse_mean", "fit_seconds",
+)
 
 
 def validate_by_fold(model, X, y, cv) -> pd.DataFrame:
@@ -47,6 +71,7 @@ def validate_by_fold(model, X, y, cv) -> pd.DataFrame:
             "rmse": -scores["test_rmse"],
             "mae": -scores["test_mae"],
             "r2": scores["test_r2"],
+            "nrmse": -scores["test_nrmse"],
             "fit_seconds": scores["fit_time"],
         }
     )
@@ -61,6 +86,8 @@ def summarise(folds: pd.DataFrame) -> dict[str, float]:
         values = folds[name].to_numpy()
         metrics[f"cv_{name}_mean"] = float(values.mean())
         metrics[f"cv_{name}_std"] = float(values.std())
+    metrics["cv_nrmse_mean"] = float(folds["nrmse"].mean())
+    metrics["fit_seconds"] = float(folds["fit_seconds"].mean())
     return metrics
 
 
@@ -153,11 +180,12 @@ def errors_by_crop(y_observed, y_predicted, crops) -> pd.DataFrame:
 
 
 def metrics(y_observed, y_predicted, prefix: str = "test") -> dict[str, float]:
-    """RMSE, MAE and R² on a given set. Reserved for the final evaluation."""
+    """RMSE, MAE, R² and NRMSE on a given set. Reserved for the final evaluation."""
     return {
         f"{prefix}_rmse": float(root_mean_squared_error(y_observed, y_predicted)),
         f"{prefix}_mae": float(mean_absolute_error(y_observed, y_predicted)),
         f"{prefix}_r2": float(r2_score(y_observed, y_predicted)),
+        f"{prefix}_nrmse": nrmse(y_observed, y_predicted),
     }
 
 

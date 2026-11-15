@@ -1,0 +1,13 @@
+experiment,run,model_family,dataset,feature_set,protocol,phase,cv_rmse_mean,cv_rmse_std,cv_mae_mean,cv_r2_mean,cv_nrmse_mean,test_rmse,test_r2,test_nrmse,fit_seconds
+agritech-practice-effects,LinearRegression — modèle final,LinearRegression,simulated,selected,kfold5,final_evaluation,0.50033,0.0009,0.39929,0.91289,0.10759,0.49927,0.91323,0.10732,0.10945
+agritech-yield-engine,ExtraTreesRegressor — temporal,ExtraTreesRegressor,fao,history,temporal,reference,1.4514,0.13177,0.72519,0.97046,0.18569,,,,2.25779
+agritech-yield-engine,"ExtraTreesRegressor — modèle servi, test 2013",ExtraTreesRegressor,fao,history,temporal,final_evaluation,1.4514,0.13177,0.72519,0.97046,0.18569,1.7115,0.96161,0.21023,2.31462
+agritech-yield-engine,RandomForestRegressor — temporal,RandomForestRegressor,fao,history,temporal,reference,1.60782,0.13565,0.81507,0.96379,0.20578,,,,4.8765
+agritech-yield-engine,HistGradientBoostingRegressor — temporal,HistGradientBoostingRegressor,fao,history,temporal,reference,1.87264,0.11706,1.09543,0.95094,0.23972,,,,1.1206
+agritech-yield-engine,ExtraTreesRegressor — leave_country_out,ExtraTreesRegressor,fao,history,leave_country_out,reference,4.06339,0.48361,2.43629,0.72006,0.58306,,,,2.03869
+agritech-yield-engine,HistGradientBoostingRegressor — leave_country_out,HistGradientBoostingRegressor,fao,history,leave_country_out,reference,4.2372,0.43641,2.51069,0.69722,0.60802,,,,1.14714
+agritech-yield-engine,Ridge — leave_country_out,Ridge,fao,history,leave_country_out,reference,4.80149,0.34173,3.20017,0.61137,0.69067,,,,0.01239
+agritech-yield-engine,RandomForestRegressor — leave_country_out,RandomForestRegressor,fao,history,leave_country_out,reference,4.81133,0.57522,2.78342,0.60828,0.69113,,,,4.3732
+agritech-yield-engine,Ridge — temporal,Ridge,fao,history,temporal,reference,5.14213,0.09997,3.33882,0.63045,0.65875,,,,0.01524
+agritech-yield-engine,crop mean (baseline) — leave_country_out,LinearRegression,fao,crop_only,leave_country_out,reference,5.27211,0.48887,3.29711,0.53125,0.75794,,,,0.01285
+agritech-yield-engine,crop mean (baseline) — temporal,LinearRegression,fao,crop_only,temporal,reference,5.75755,0.11311,3.46621,0.53672,0.73759,,,,0.01251

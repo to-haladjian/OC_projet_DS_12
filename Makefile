@@ -9,7 +9,7 @@ export MLFLOW_DISABLE_AGENT_HINT := 1
 .DEFAULT_GOAL := help
 .PHONY: help install data data-fao data-consolidated data-prices \
         train train-practice train-yield assets \
-        notebooks check-notebooks test all mlflow-ui api app up down
+        select-yield compare notebooks check-notebooks test all mlflow-ui api app up down
 
 help:  ## List the targets
 	@grep -E '^[a-z][a-z-]*:.*## ' $(MAKEFILE_LIST) | \
@@ -49,6 +49,9 @@ assets:  ## Write the JSON assets the API serves next to the models
 
 train: train-practice train-yield assets  ## Both models, then the serving assets
 
+select-yield:  ## Compare the candidate families of the yield model, under both protocols
+	$(PY) -m src.models.selection
+
 # ---------------------------------------------------------------------------
 # Notebooks, tests
 # ---------------------------------------------------------------------------
@@ -69,6 +72,9 @@ all: data train test  ## From the raw data to tested models
 # ---------------------------------------------------------------------------
 # Experiment tracking, serving
 # ---------------------------------------------------------------------------
+
+compare:  ## Print every tracked run on the shared metrics, and write the CSV
+	$(PY) -m src.tracking
 
 mlflow-ui:  ## Browse the tracked runs on http://127.0.0.1:5000
 	$(PY) -m mlflow ui --backend-store-uri sqlite:///mlflow.db
