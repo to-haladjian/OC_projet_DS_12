@@ -258,13 +258,13 @@ def mlflow_metrics(quality: dict[str, dict[str, float]]) -> dict[str, float]:
 #: Reverse mapping: product crop -> FAO label, for the 4 shared crops.
 PRODUCT_TO_FAO = {k: v for k, v in CROP_TO_FAO_ITEM.items() if v}
 
-#: Product crops missing from the FAO dataset are **left out of the ranking**. Step 1
-#: gave them a donor crop to enrich the consolidated dataset, but in a ranking a donor
-#: does not hold: barley would always tie with wheat, whose prediction it copies, and
-#: cotton would carry the yield of sorghum, which step 1 itself rules out as a proxy.
-#: Both remain available through `/predict`.
+#: Product crops missing from the FAO dataset are **neither estimated nor ranked**. The
+#: consolidated dataset gives them a donor crop for its enrichment columns, but a donor
+#: does not hold here: barley would always tie with wheat, whose prediction it copies,
+#: and cotton would carry the yield of sorghum, which the consolidation itself rules out
+#: as a yield proxy.
 EXCLUDED_CROPS = {
-    crop: "absente du jeu FAO : son classement copierait celui de sa culture donneuse"
+    crop: "absente des données FAO, son rendement ne peut être ni estimé ni classé"
     for crop, item in CROP_TO_FAO_ITEM.items()
     if item is None
 }

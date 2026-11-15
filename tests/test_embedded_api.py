@@ -27,7 +27,7 @@ import api_client
 print(json.dumps({
     "url": api_client.api_base_url(),
     "health": api_client.health(),
-    "yield": api_client.predict("Wheat", 600, 22, True, False)["yield_t_ha"],
+    "yield": api_client.predict("FRA", "Wheat")["yield_t_ha"],
 }))
 """
 

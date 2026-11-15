@@ -1,4 +1,4 @@
-"""HTTP client of the Agritech Answers API — the interface's only contact with the models.
+"""HTTP client of the Agritech Answers API — the interface's only contact with the model.
 
 No Streamlit here, and no ML: this module sends what the user typed and returns what
 the API answered. It is therefore testable on its own.
@@ -22,6 +22,9 @@ READ_TIMEOUT, COMPUTE_TIMEOUT = 5, 15
 
 #: Below this gap, a prefilled value is considered unchanged (slider rounding).
 TOLERANCE = 1e-6
+
+#: The conditions both forms share, as named in the API.
+CONDITIONS = ("temperature_c", "rain_mm", "pesticides_t")
 
 
 class APIError(Exception):
@@ -52,9 +55,12 @@ def api_base_url() -> str:
 
 
 def _detail_422(body: dict) -> str:
-    """Pydantic validation errors, one readable line each."""
+    """A refused input, readable: one line per Pydantic error, or the API's own sentence."""
+    detail = body.get("detail", [])
+    if isinstance(detail, str):
+        return detail
     rows = []
-    for error in body.get("detail", []):
+    for error in detail:
         field_name = ".".join(str(p) for p in error.get("loc", []) if p != "body")
         rows.append(f"{field_name} : {error.get('msg', 'valeur invalide')}")
     return "Saisie refusée par l'API — " + " ; ".join(rows) if rows else "Saisie refusée par l'API."
@@ -70,8 +76,8 @@ def _call(method: str, path: str, timeout: float, body: dict | None = None):
         # In embedded mode, telling the user to start a server would be nonsense: the
         # server is this process, so its thread has died.
         hint = ("Le service interne s'est arrêté : rechargez la page."
-                  if embedded_mode()
-                  else "Est-elle démarrée ? (`uvicorn api.main:app` ou `docker compose up`)")
+                if embedded_mode()
+                else "Est-elle démarrée ? (`make api` ou `docker compose up`)")
         raise APIError(f"L'API ne répond pas à {api_base_url()}. {hint}") from error
 
     if response.status_code == 422:
@@ -79,7 +85,7 @@ def _call(method: str, path: str, timeout: float, body: dict | None = None):
     if response.status_code == 404:
         raise APIError(response.json().get("detail", "Ressource introuvable."), 404)
     if response.status_code == 503:
-        raise APIError("L'API démarre et charge ses modèles : réessayez dans quelques secondes.", 503)
+        raise APIError("L'API démarre et charge son modèle : réessayez dans quelques secondes.", 503)
     if not response.ok:
         raise APIError(f"Erreur de l'API ({response.status_code}).", response.status_code)
     return response.json()
@@ -97,26 +103,24 @@ def predict_context() -> dict:
     return _call("GET", "/predict/context", READ_TIMEOUT)
 
 
-def predict(crop: str, rain_mm: float, temperature_c: float,
-            fertilizer: bool, irrigation: bool) -> dict:
-    return _call("POST", "/predict", COMPUTE_TIMEOUT, {
-        "crop": crop, "rain_mm": rain_mm, "temperature_c": temperature_c,
-        "fertilizer": fertilizer, "irrigation": irrigation,
-    })
-
-
 def countries() -> list[dict]:
-    return _call("GET", "/recommend/countries", READ_TIMEOUT)
+    return _call("GET", "/countries", READ_TIMEOUT)
 
 
 def country_context(iso3: str) -> dict:
-    return _call("GET", f"/recommend/countries/{iso3}", READ_TIMEOUT)
+    return _call("GET", f"/countries/{iso3}", READ_TIMEOUT)
+
+
+def predict(iso3: str, crop: str, modifications: dict | None = None) -> dict:
+    """Yield of one crop in a country; `modifications` only holds what the user changed."""
+    return _call("POST", "/predict", COMPUTE_TIMEOUT,
+                 {"iso3": iso3, "crop": crop, **(modifications or {})})
 
 
 def recommend(iso3: str, criterion: str, modifications: dict | None = None) -> dict:
     """Ranking for a country; `modifications` only holds what the user changed."""
     return _call("POST", "/recommend", COMPUTE_TIMEOUT,
-                  {"iso3": iso3, "criterion": criterion, **(modifications or {})})
+                 {"iso3": iso3, "criterion": criterion, **(modifications or {})})
 
 
 # --------------------------------------------------------------------------- #
@@ -128,15 +132,15 @@ def _differs(a: float, b: float) -> bool:
 
 
 def changed_fields(entered: dict, defaults: dict) -> dict:
-    """The fields of a `/recommend` form that differ from the country's defaults.
+    """The fields of a form that differ from the country's defaults.
 
-    `entered` holds `temperature_c`, `rain_mm`, `pesticides_t` and `price_usd_t`
-    (`{culture: price}`); `defaults` is the answer of `GET /recommend/countries/{iso3}`.
+    `entered` holds `temperature_c`, `rain_mm`, `pesticides_t` and, for a ranking,
+    `price_usd_t` (`{crop: price}`); `defaults` is the answer of `GET /countries/{iso3}`.
     Sending only what changed keeps `entered_values` in the API answer truthful.
     """
     modifications = {
         field_name: entered[field_name]
-        for field_name in ("temperature_c", "rain_mm", "pesticides_t")
+        for field_name in CONDITIONS
         if _differs(entered[field_name], defaults[field_name])
     }
     default_prices = {p["crop"]: p["price_usd_t"] for p in defaults["prices"]}

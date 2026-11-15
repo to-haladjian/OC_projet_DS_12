@@ -1,21 +1,8 @@
 {
  "scikit_learn": "1.9.0",
- "predict": {
-  "source": "min / max du jeu simule d'entrainement",
-  "bounds": {
-   "Rainfall_mm": {
-    "min": 100.00089622522204,
-    "max": 999.998098221668
-   },
-   "Temperature_Celsius": {
-    "min": 15.000034141430271,
-    "max": 39.99999662316004
-   }
-  }
- },
- "recommend": {
+ "bounds": {
   "source": "quantiles 5 % / 95 % par culture FAO, annee de test exclue",
-  "bounds": {
+  "crops": {
    "Cassava": {
     "temperature_c": {
      "min": 16.916,
@@ -155,6 +142,32 @@
      "min": 1.0450000000000004,
      "max": 64302.28049999996
     }
+   }
+  }
+ },
+ "relative_error": {
+  "source": "erreur relative en validation temporelle (2008-2012), quantiles couvrant 95% des cas",
+  "coverage": 0.95,
+  "crops": {
+   "Maize": {
+    "low": -0.3450029925455614,
+    "high": 0.5466868429347288,
+    "n": 533
+   },
+   "Wheat": {
+    "low": -0.3411806187513146,
+    "high": 0.45560033019211565,
+    "n": 456
+   },
+   "Rice, paddy": {
+    "low": -0.2891478452864542,
+    "high": 0.3917018774573077,
+    "n": 395
+   },
+   "Soybeans": {
+    "low": -0.36499671898839786,
+    "high": 0.5822955346429232,
+    "n": 360
    }
   }
  }

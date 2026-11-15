@@ -1,10 +1,13 @@
-"""Agritech Answers — Streamlit interface (step 4).
+"""Agritech Answers — Streamlit interface.
 
 The interface holds **no ML logic**: it builds forms from what the API describes, sends
 what the user typed, and displays what the API answers. All calls go through
 `api_client.py`.
 
-Run locally (API started first):  streamlit run app/app.py
+Both screens start the same way — a country, then its conditions, prefilled and
+editable — because both ask the same model: one crop's yield, or all crops ranked.
+
+Run locally (API started first):  streamlit run app/app.py  (or `make app`)
 """
 
 from __future__ import annotations
@@ -22,14 +25,20 @@ BAR_COLOUR = "#2a78d6"
 
 #: Vega expression formatting an axis tick the French way: "1 304", "2,5".
 AXIS_LABEL_FR = (
-    "replace(replace(format(datum.value, ',~f'), regexp(',', 'g'), '\u202f'), '.', ',')"
+    "replace(replace(format(datum.value, ',~f'), regexp(',', 'g'), ' '), '.', ',')"
 )
+
+#: Displayed names of the conditions, to tell the user which ones they changed.
+CONDITION_LABELS = {
+    "temperature_c": "température", "rain_mm": "pluie",
+    "pesticides_t": "pesticides", "price_usd_t": "prix",
+}
 
 
 def number_fr(value: float, decimals: int = 2) -> str:
     """`1304.2` -> `1 304`, `9.228` -> `9,23`: French separators, narrow no-break space."""
     text = f"{value:,.{decimals}f}"
-    return text.replace(",", "\u202f").replace(".", ",")
+    return text.replace(",", " ").replace(".", ",")
 
 
 CRITERIA = {
@@ -70,6 +79,12 @@ def show_warnings(warnings: list[str]) -> None:
         st.warning(message, icon="⚠️")
 
 
+def show_entered(entered_values: list[str]) -> None:
+    if entered_values:
+        names = ", ".join(CONDITION_LABELS.get(v, v) for v in entered_values)
+        st.caption(f"Valeurs modifiées par vous : {names}.")
+
+
 # --------------------------------------------------------------------------- #
 # Sidebar
 # --------------------------------------------------------------------------- #
@@ -78,28 +93,73 @@ def render_sidebar() -> str:
     with st.sidebar:
         st.title("🌾 Agritech Answers")
         mode = st.radio("Que voulez-vous faire ?", ["Prédiction", "Recommandation"],
-                        captions=["Estimer le rendement d'une parcelle",
-                                  "Classer les cultures pour un pays"])
+                        captions=["Estimer le rendement d'une culture",
+                                  "Classer les cultures pour vos conditions"])
         st.divider()
         try:
             state = api.health()
             st.caption(f"API connectée · v{state['api_version']}")
-            st.caption(f"Modèles : {state['models']['predict']} · {state['models']['recommend']}")
+            st.caption(f"Modèle de rendement : {state['models']['yield']}")
         except api.APIError as error:
             st.caption(f"API indisponible — {error.message}")
 
         with st.expander("Ce que l'outil sait, et ne sait pas"):
             st.markdown(
-                "- **Prédiction** : appris sur des parcelles **simulées**. Les effets "
-                "(engrais, irrigation, pluie) sont des ordres de grandeur, et la culture "
-                "choisie ne change pas l'estimation.\n"
-                "- **Recommandation** : appris sur des données **FAO réelles**, mais à "
-                "l'échelle d'un **pays** (données jusqu'en 2013), pas d'une parcelle.\n"
+                "- **Un seul modèle** estime le rendement, pour la prédiction comme pour la "
+                "recommandation : les deux écrans donnent le même chiffre.\n"
+                "- Il a appris sur des données **FAO réelles**, à l'échelle d'un **pays** "
+                "(jusqu'en 2013), pas d'une parcelle : il donne un ordre de grandeur.\n"
+                "- L'effet de l'**engrais** et de l'**irrigation** vient de parcelles "
+                "**simulées** : il est affiché à part, à titre indicatif.\n"
                 "- **Produit brut** = rendement × prix de vente. Ce n'est **pas une "
                 "marge** : les coûts de production sont inconnus.\n"
-                "- L'orge et le coton, absents des données FAO, ne sont pas classés."
+                "- L'orge et le coton, absents des données FAO, ne sont ni estimés ni classés."
             )
     return mode
+
+
+# --------------------------------------------------------------------------- #
+# Shared by both screens: the country and its conditions
+# --------------------------------------------------------------------------- #
+
+def choose_country() -> tuple[str, dict]:
+    """Country selector, and the country's default values to prefill the form."""
+    try:
+        country_list = read_countries(api.api_base_url())
+    except api.APIError as error:
+        stop_on_error(error)
+
+    names = {p["iso3"]: p["name"] for p in country_list}
+    iso3 = st.selectbox("Pays", list(names), format_func=names.get,
+                        index=list(names).index("FRA") if "FRA" in names else 0)
+    try:
+        defaults = read_country_context(api.api_base_url(), iso3)
+    except api.APIError as error:
+        stop_on_error(error)
+    st.caption(f"Valeurs préremplies : conditions de {defaults['name']} ({defaults['year']}). "
+               "Modifiez-les pour décrire votre situation.")
+    return iso3, defaults
+
+
+def condition_inputs(defaults: dict, key) -> dict:
+    """The three conditions, prefilled. `key` builds widget keys that carry the screen
+    and the country, so choosing another country resets them."""
+    left, right = st.columns(2)
+    temperature = left.slider(
+        "Température moyenne annuelle (°C)", min_value=-30.0, max_value=60.0,
+        value=float(defaults["temperature_c"]), step=0.01, key=key("temperature"),
+        help="Moyenne des dernières années connues du pays.",
+    )
+    rain = right.slider(
+        "Pluie annuelle normale (mm)", min_value=0.0, max_value=5000.0,
+        value=float(defaults["rain_mm"]), step=1.0, key=key("rain"),
+    )
+    pesticides = left.number_input(
+        "Pesticides utilisés dans le pays (t/an)", min_value=0.0, max_value=5_000_000.0,
+        value=float(defaults["pesticides_t"]), step=100.0, key=key("pesticides"),
+        help="Tonnage national : c'est la seule mesure d'intensité agricole disponible.",
+    )
+    return {"temperature_c": temperature, "rain_mm": rain, "pesticides_t": pesticides}
 
 
 # --------------------------------------------------------------------------- #
@@ -107,50 +167,48 @@ def render_sidebar() -> str:
 # --------------------------------------------------------------------------- #
 
 def page_prediction() -> None:
-    st.header("Estimer le rendement d'une parcelle")
+    st.header("Estimer le rendement d'une culture")
     try:
         context = read_predict_context(api.api_base_url())
     except api.APIError as error:
         stop_on_error(error)
-
-    physical, domain = context["physical_bounds"], context["learned_domain"]
     crops = context["crops"]
 
-    with st.form("prediction"):
-        crop = st.selectbox("Culture", list(crops), format_func=crops.get)
-        left, right = st.columns(2)
-        rain = left.slider(
-            "Pluie de la saison (mm)", min_value=float(physical["rain_mm"]["min"]),
-            max_value=float(physical["rain_mm"]["max"]), value=600.0, step=10.0,
-            help=f"Le modèle a appris entre {domain['rain_mm']['min']:.0f} et "
-                 f"{domain['rain_mm']['max']:.0f} mm : au-delà, l'estimation est extrapolée.",
-        )
-        temperature = right.slider(
-            "Température moyenne (°C)", min_value=float(physical["temperature_c"]["min"]),
-            max_value=float(physical["temperature_c"]["max"]), value=25.0, step=0.5,
-            help=f"Le modèle a appris entre {domain['temperature_c']['min']:.0f} et "
-                 f"{domain['temperature_c']['max']:.0f} °C.",
-        )
-        fertilizer = left.toggle("Engrais utilisé", value=True)
-        irrigation = right.toggle("Parcelle irriguée", value=False)
+    iso3, defaults = choose_country()
+    key = lambda name: f"prediction_{name}_{iso3}"  # noqa: E731
+    with st.form(f"prediction_{iso3}"):
+        crop = st.selectbox("Culture", list(crops), format_func=crops.get, key=key("crop"))
+        entered = condition_inputs(defaults, key)
         submitted = st.form_submit_button("Estimer le rendement", type="primary")
 
+    unavailable = ", ".join(c["label"] for c in context["unavailable_crops"])
     if not submitted:
-        st.caption("Renseignez la parcelle, puis lancez l'estimation.")
+        st.caption(f"Non disponibles : {unavailable} — absentes des données FAO.")
         return
     try:
         with st.spinner("Estimation…"):
-            response = api.predict(crop, rain, temperature, fertilizer, irrigation)
+            response = api.predict(iso3, crop, api.changed_fields(entered, defaults))
     except api.APIError as error:
         stop_on_error(error)
 
     low, high = response["interval_95_t_ha"]
-    st.metric(f"Rendement estimé — {response['label']}", f"{number_fr(response['yield_t_ha'])} t/ha")
-    st.caption(f"95 % des parcelles comparables : entre **{number_fr(low)}** et "
-               f"**{number_fr(high)} t/ha**.")
-    crop_no_effect, *others = response["warnings"]
-    st.info(crop_no_effect, icon="ℹ️")
-    show_warnings(others)
+    st.metric(f"Rendement estimé — {response['label']}, {response['context']['country']}",
+              f"{number_fr(response['yield_t_ha'])} t/ha")
+    st.caption(f"Entre **{number_fr(low)}** et **{number_fr(high)} t/ha** dans 95 % des cas "
+               "observés en validation. "
+               f"En matière sèche : {number_fr(response['dry_matter_t_ha'])} t/ha.")
+    show_entered(response["context"]["entered_values"])
+
+    effects = " · ".join(
+        f"{e['label'].lower()} **+{number_fr(e['effect_t_ha'])} t/ha**"
+        for e in response["practice_effects"]
+    )
+    st.info(
+        f"Effet des pratiques, mesuré sur des parcelles simulées : {effects}. "
+        "Ordre de grandeur indicatif, non additionné à l'estimation ci-dessus.",
+        icon="ℹ️",
+    )
+    show_warnings(response["warnings"])
 
 
 # --------------------------------------------------------------------------- #
@@ -162,7 +220,7 @@ def ranking_chart(ranking: pd.DataFrame, criterion: str) -> alt.Chart:
     title, column, unit = CRITERIA[criterion]
     frame = ranking.assign(
         label_text=ranking.apply(
-            lambda l: l["label"] + ("" if l["grown_in_country"] else " (jamais cultivée ici)"),
+            lambda row: row["label"] + ("" if row["grown_in_country"] else " (jamais cultivée ici)"),
             axis=1,
         ),
         value_text=ranking[column].map(lambda v: number_fr(v, 0 if unit == "USD/ha" else 2)),
@@ -190,27 +248,12 @@ def ranking_chart(ranking: pd.DataFrame, criterion: str) -> alt.Chart:
     return (bars + values).properties(height=alt.Step(44))
 
 
-def recommendation_form(defaults: dict, country_iso3: str) -> tuple[dict, str, bool]:
-    """The form, prefilled with the country's values. Widget keys carry the country, so
-    choosing another country resets them."""
-    key = lambda name: f"{name}_{country_iso3}"  # noqa: E731
-    with st.form(f"recommandation_{country_iso3}"):
-        left, right = st.columns(2)
-        temperature = left.slider(
-            "Température moyenne annuelle (°C)", min_value=-30.0, max_value=60.0,
-            value=float(defaults["temperature_c"]), step=0.01, key=key("temperature"),
-            help="Moyenne des dernières années connues du pays.",
-        )
-        rain = right.slider(
-            "Pluie annuelle normale (mm)", min_value=0.0, max_value=5000.0,
-            value=float(defaults["rain_mm"]), step=1.0, key=key("pluie"),
-        )
-        pesticides = left.number_input(
-            "Pesticides utilisés dans le pays (t/an)", min_value=0.0, max_value=5_000_000.0,
-            value=float(defaults["pesticides_t"]), step=100.0, key=key("pesticides"),
-            help="Tonnage national : c'est la seule mesure d'intensité agricole disponible.",
-        )
-        criterion = right.radio(
+def recommendation_form(defaults: dict, iso3: str) -> tuple[dict, str, bool]:
+    """The form, prefilled with the country's values."""
+    key = lambda name: f"recommendation_{name}_{iso3}"  # noqa: E731
+    with st.form(f"recommendation_{iso3}"):
+        entered = condition_inputs(defaults, key)
+        criterion = st.radio(
             "Classer selon", list(CRITERIA), format_func=lambda c: CRITERIA[c][0],
             horizontal=True, key=key("criterion"),
         )
@@ -220,31 +263,16 @@ def recommendation_form(defaults: dict, country_iso3: str) -> tuple[dict, str, b
             for column, row in zip(columns, defaults["prices"]):
                 prices[row["crop"]] = column.number_input(
                     row["crop"], min_value=1.0, max_value=100_000.0,
-                    value=float(row["price_usd_t"]), step=5.0, key=key(f"prix_{row['crop']}"),
+                    value=float(row["price_usd_t"]), step=5.0, key=key(f"price_{row['crop']}"),
                     help=f"Référence FAOSTAT : {row['price_source']}.",
                 )
         submitted = st.form_submit_button("Classer les cultures", type="primary")
-    entered = {"temperature_c": temperature, "rain_mm": rain, "pesticides_t": pesticides,
-              "price_usd_t": prices}
-    return entered, criterion, submitted
+    return {**entered, "price_usd_t": prices}, criterion, submitted
 
 
 def page_recommendation() -> None:
     st.header("Quelle culture privilégier ?")
-    try:
-        country_list = read_countries(api.api_base_url())
-    except api.APIError as error:
-        stop_on_error(error)
-
-    names = {p["iso3"]: p["name"] for p in country_list}
-    iso3 = st.selectbox("Pays", list(names), format_func=names.get,
-                        index=list(names).index("FRA") if "FRA" in names else 0)
-    try:
-        defaults = read_country_context(api.api_base_url(), iso3)
-    except api.APIError as error:
-        stop_on_error(error)
-    st.caption(f"Valeurs préremplies : conditions de {defaults['name']} ({defaults['year']}). "
-               "Modifiez-les pour décrire votre situation.")
+    iso3, defaults = choose_country()
 
     entered, criterion, submitted = recommendation_form(defaults, iso3)
     if not submitted:
@@ -267,7 +295,7 @@ def page_recommendation() -> None:
     st.altair_chart(ranking_chart(ranking, criterion), width="stretch")
 
     display_table = ranking[["rank", "label", "yield_t_ha", "dry_matter_t_ha", "price_usd_t",
-                          "price_source", "gross_product_usd_ha", "grown_in_country"]].round(
+                             "price_source", "gross_product_usd_ha", "grown_in_country"]].round(
         {"yield_t_ha": 2, "dry_matter_t_ha": 2, "price_usd_t": 0, "gross_product_usd_ha": 0})
     st.dataframe(
         display_table,
@@ -285,11 +313,9 @@ def page_recommendation() -> None:
     )
 
     unranked = ", ".join(c["label"] for c in response["unranked_crops"])
-    st.caption(f"Non classées : {unranked} — absentes des données FAO, leur rang "
-               "ne serait qu'une copie de celui d'une autre culture.")
-    entered_fields = response["context"]["entered_values"]
-    if entered_fields:
-        st.caption("Valeurs modifiées par vous : " + ", ".join(entered_fields) + ".")
+    st.caption(f"Non classées : {unranked} — absentes des données FAO, leur rendement ne "
+               "peut être ni estimé ni classé.")
+    show_entered(response["context"]["entered_values"])
     show_warnings(response["warnings"])
 
 

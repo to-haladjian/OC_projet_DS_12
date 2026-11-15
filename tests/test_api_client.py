@@ -58,6 +58,12 @@ def test_only_changes_are_sent():
         "temperature_c": 13.0, "price_usd_t": {"Wheat": 300.0}}
 
 
+def test_changes_without_prices():
+    """The prediction form has no prices: the conditions alone are compared."""
+    entered = {"temperature_c": 11.32, "rain_mm": 900.0, "pesticides_t": 62163.2}
+    assert api_client.changed_fields(entered, FRA_DEFAULTS) == {"rain_mm": 900.0}
+
+
 # --------------------------------------------------------------------------- #
 # Calls and errors
 # --------------------------------------------------------------------------- #
@@ -78,6 +84,14 @@ def test_recommend_sends_country_criterion_and_changes(calls):
     assert recorded[0]["timeout"] == api_client.COMPUTE_TIMEOUT
 
 
+def test_predict_sends_country_crop_and_changes(calls):
+    recorded, responses = calls
+    responses.append(FakeResponse(200, {"yield_t_ha": 7.0}))
+    api_client.predict("FRA", "Wheat", {"rain_mm": 700.0})
+    assert recorded[0]["url"].endswith("/predict")
+    assert recorded[0]["json"] == {"iso3": "FRA", "crop": "Wheat", "rain_mm": 700.0}
+
+
 def test_api_unreachable(calls):
     _, responses = calls
     responses.append(requests.ConnectionError("refus"))
@@ -89,7 +103,7 @@ def test_timeout(calls):
     _, responses = calls
     responses.append(requests.Timeout("lent"))
     with pytest.raises(api_client.APIError, match="à temps"):
-        api_client.predict("Wheat", 600, 22, True, False)
+        api_client.predict("FRA", "Wheat")
 
 
 def test_404_returns_the_api_message(calls):
@@ -106,7 +120,15 @@ def test_422_is_readable(calls):
     responses.append(FakeResponse(422, {"detail": [
         {"loc": ["body", "rain_mm"], "msg": "Input should be greater than or equal to 0"}]}))
     with pytest.raises(api_client.APIError, match="rain_mm : Input should be"):
-        api_client.predict("Wheat", -1, 22, True, False)
+        api_client.predict("FRA", "Wheat", {"rain_mm": -1})
+
+
+def test_422_with_a_sentence_is_shown_as_is(calls):
+    """A crop absent from the data is refused by the API in plain French: keep it."""
+    _, responses = calls
+    responses.append(FakeResponse(422, {"detail": "Orge : absente des données FAO."}))
+    with pytest.raises(api_client.APIError, match="^Orge : absente des données FAO.$"):
+        api_client.predict("FRA", "Barley")
 
 
 def test_503_during_startup(calls):

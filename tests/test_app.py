@@ -47,14 +47,34 @@ def app(api_url, monkeypatch):
     return AppTest.from_file(APP, default_timeout=30)
 
 
+def _number(text: str) -> float:
+    """`"9,23 t/ha"` -> 9.23: undo the French separators."""
+    return float(text.split()[0].replace("\u202f", "").replace(",", "."))
+
+
 def test_prediction(app):
     app.run()
     assert not app.exception
+    assert app.selectbox[0].value == "FRA"
     app.button[0].click().run()          # the form's submit button, default values
     assert not app.exception
-    yield_value = app.metric[0].value          # French format: "4,94 t/ha"
+    yield_value = app.metric[0].value          # French format: "9,23 t/ha"
     assert yield_value.endswith("t/ha")
-    assert float(yield_value.split()[0].replace("\u202f", "").replace(",", ".")) > 0
+    assert _number(yield_value) > 0
+
+
+def test_both_screens_show_the_same_yield(app):
+    """Default crop of the prediction screen, then the same crop in the ranking."""
+    app.run()
+    crop_label = app.selectbox[1].format_func(app.selectbox[1].value)
+    app.button[0].click().run()
+    predicted = _number(app.metric[0].value)
+
+    app.sidebar.radio[0].set_value("Recommandation").run()
+    app.button[0].click().run()
+    assert not app.exception
+    ranking = app.dataframe[0].value.set_index("label")
+    assert ranking.loc[crop_label, "yield_t_ha"] == pytest.approx(predicted, abs=0.006)
 
 
 def test_recommendation_france(app):

@@ -12,9 +12,9 @@ notebooks/
 reports/
 tests/
 scripts/
-mlruns/
+mlruns*/
 mlartifacts/
-mlflow.db
+mlflow*.db
 TO_DELETE/
 *.mhtml
 *.ansi

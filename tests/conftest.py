@@ -1,4 +1,4 @@
-"""Shared fixtures: models are loaded once for the whole test session (~3 s)."""
+"""Shared fixtures: the model is loaded once for the whole test session (~3 s)."""
 
 import pytest
 from fastapi.testclient import TestClient
@@ -18,12 +18,5 @@ def resources(client):
 
 
 @pytest.fixture
-def parcel():
-    return {"crop": "Wheat", "rain_mm": 600, "temperature_c": 22,
-            "fertilizer": True, "irrigation": False}
-
-
-@pytest.fixture(scope="session")
-def coefficients(resources):
-    return resources.practice_meta["coefficients"], resources.practice_meta["intercept"]
-
+def wheat_in_france():
+    return {"iso3": "FRA", "crop": "Wheat"}

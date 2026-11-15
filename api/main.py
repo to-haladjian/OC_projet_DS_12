@@ -1,15 +1,19 @@
-"""Agritech Answers API — step 3.
+"""Agritech Answers API.
 
-Serves the two models of step 2:
+One yield model, two questions asked of it:
 
-* `POST /predict`: one crop and the conditions of a plot -> expected yield;
-* `POST /recommend`: a country and, optionally, its conditions and prices -> the crops,
-  ranked by predicted yield (or dry matter, or gross product).
+* `POST /predict`: a country, one crop and, optionally, the conditions that differ from
+  the country's own -> expected yield, with an interval;
+* `POST /recommend`: the same conditions and, optionally, prices -> the crops, ranked
+  by predicted yield (or dry matter, or gross product).
+
+Both go through the same estimate (see `api.service`), so the same crop in the same
+conditions gets the same yield from either endpoint.
 
 Plus the read-only endpoints the Streamlit interface needs to build its forms, since it
 contains no ML logic. Interactive documentation: `/docs`.
 
-Run locally: `uvicorn api.main:app --reload`.
+Run locally: `uvicorn api.main:app --reload` (or `make api`).
 """
 
 from __future__ import annotations
@@ -23,8 +27,14 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 
 from api import __version__, service
 from api.schemas import (
-    CountryContext, PredictContext, PredictInput, RecommendInput, Country, Health,
-    PredictOutput, RecommendOutput,
+    Country,
+    CountryContext,
+    Health,
+    PredictContext,
+    PredictInput,
+    PredictOutput,
+    RecommendInput,
+    RecommendOutput,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -33,21 +43,24 @@ logger = logging.getLogger("agritech.api")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Load models and assets once, before serving the first request."""
+    """Load the model and the assets once, before serving the first request."""
     started_at = time.perf_counter()
     app.state.resources = service.load_resources()
-    logger.info("modeles charges en %.1f s", time.perf_counter() - started_at)
+    logger.info("modele charge en %.1f s", time.perf_counter() - started_at)
+    # Nothing to release on shutdown, and the state is deliberately left in place: the
+    # application object can be served by more than one server in a process (the test
+    # suite does it), and one of them stopping must not blind the others.
     yield
-    app.state.resources = None
 
 
 app = FastAPI(
     title="Agritech Answers — API",
     version=__version__,
     description=(
-        "Estimation du rendement d'une parcelle (`/predict`) et classement des cultures "
-        "pour un pays (`/recommend`). Les valeurs inhabituelles sont acceptées et "
-        "signalées dans `warnings` ; les valeurs impossibles sont refusées (422)."
+        "Estimation du rendement d'une culture (`/predict`) et classement des cultures "
+        "(`/recommend`) pour un pays et ses conditions, par un même modèle. Les valeurs "
+        "inhabituelles sont acceptées et signalées dans `warnings` ; les valeurs "
+        "impossibles sont refusées (422)."
     ),
     lifespan=lifespan,
 )
@@ -69,7 +82,7 @@ def resources(request: Request) -> service.Resources:
     """The loaded resources, or a 503 if the service is not ready."""
     loaded = getattr(request.app.state, "resources", None)
     if loaded is None:
-        raise HTTPException(status_code=503, detail="modèles non chargés")
+        raise HTTPException(status_code=503, detail="modèle non chargé")
     return loaded
 
 
@@ -89,8 +102,8 @@ def health(r: service.Resources = Depends(resources)) -> dict:
         "status": "ok",
         "api_version": __version__,
         "models": {
-            "predict": r.practice_meta["model"],
-            "recommend": f"{r.yield_meta['model']} ({r.yield_meta['n_estimators']} arbres)",
+            "yield": f"{r.yield_meta['model']} ({r.yield_meta['n_estimators']} arbres)",
+            "practice_effects": r.practice_meta["model"],
         },
         "scikit_learn": sklearn.__version__,
         "scikit_learn_training": r.domain["scikit_learn"],
@@ -98,39 +111,48 @@ def health(r: service.Resources = Depends(resources)) -> dict:
 
 
 # --------------------------------------------------------------------------- #
-# /predict
+# Countries
 # --------------------------------------------------------------------------- #
 
-@app.get("/predict/context", response_model=PredictContext, tags=["predict"])
-def get_predict_context(r: service.Resources = Depends(resources)) -> dict:
-    """Crops, bounds and units, to build the `/predict` form."""
-    return service.predict_context(r)
-
-
-@app.post("/predict", response_model=PredictOutput, tags=["predict"])
-def predict(payload: PredictInput, r: service.Resources = Depends(resources)) -> dict:
-    """Expected yield of one plot, with a 95 % interval."""
-    return service.predict_yield(r, payload)
-
-
-# --------------------------------------------------------------------------- #
-# /recommend
-# --------------------------------------------------------------------------- #
-
-@app.get("/recommend/countries", response_model=list[Country], tags=["recommend"])
+@app.get("/countries", response_model=list[Country], tags=["countries"])
 def get_countries(r: service.Resources = Depends(resources)) -> list[dict]:
     """The served countries."""
     return service.served_countries(r)
 
 
-@app.get("/recommend/countries/{iso3}", response_model=CountryContext, tags=["recommend"])
+@app.get("/countries/{iso3}", response_model=CountryContext, tags=["countries"])
 def get_country_context(iso3: str, r: service.Resources = Depends(resources)) -> dict:
-    """A country's default conditions and reference prices, to prefill the form."""
+    """A country's default conditions and reference prices, to prefill both forms."""
     try:
         return service.display_country_context(r, iso3)
     except service.UnknownCountry as error:
         raise HTTPException(status_code=404, detail=error.args[0]) from error
 
+
+# --------------------------------------------------------------------------- #
+# /predict
+# --------------------------------------------------------------------------- #
+
+@app.get("/predict/context", response_model=PredictContext, tags=["predict"])
+def get_predict_context() -> dict:
+    """Crops, bounds and units, to build the `/predict` form."""
+    return service.predict_context()
+
+
+@app.post("/predict", response_model=PredictOutput, tags=["predict"])
+def predict(payload: PredictInput, r: service.Resources = Depends(resources)) -> dict:
+    """Expected yield of one crop, with the interval observed in validation."""
+    try:
+        return service.predict(r, payload)
+    except service.UnknownCountry as error:
+        raise HTTPException(status_code=404, detail=error.args[0]) from error
+    except service.UnavailableCrop as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+
+
+# --------------------------------------------------------------------------- #
+# /recommend
+# --------------------------------------------------------------------------- #
 
 @app.post("/recommend", response_model=RecommendOutput, tags=["recommend"])
 def recommend(payload: RecommendInput, r: service.Resources = Depends(resources)) -> dict:
