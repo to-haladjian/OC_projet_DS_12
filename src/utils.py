@@ -6,7 +6,6 @@ Gathers here what would otherwise be copied at the top of every notebook.
 from __future__ import annotations
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import seaborn as sns
 

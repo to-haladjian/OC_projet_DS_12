@@ -32,6 +32,7 @@ app = [
 dev = [
     "pytest>=8.0",
     "httpx>=0.27",
+    "ruff>=0.6",
 ]
 
 [tool.pytest.ini_options]
@@ -45,6 +46,18 @@ filterwarnings = [
     "ignore::DeprecationWarning:fastapi.testclient",
     "ignore:Using `httpx` with `starlette.testclient`",
 ]
+
+[tool.ruff]
+line-length = 120
+extend-exclude = ["TO_DELETE", "notebooks"]
+
+[tool.ruff.lint]
+# Errors, pyflakes, warnings and import order: what catches a broken rename or a dead
+# import, without imposing a style on the notebooks' companion code.
+select = ["E", "F", "W", "I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src", "api", "api_client", "embedded_api"]
 
 [tool.setuptools.packages.find]
 where = ["."]

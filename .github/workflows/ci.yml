@@ -2,16 +2,19 @@ name: CI
 
 # Three jobs: tests -> image -> alerte.
 #
-# `image` depends on `tests`, so a red suite stops the build and nothing reaches the
-# registry. That is what the evaluation sheet asks for — "unit tests, build and
-# deployment steps" — and publishing the image to GHCR is the deployment step: the
-# artefact that leaves the pipeline, tagged by commit.
+# `tests` lints then runs the suite. `image` depends on it, so a red suite stops the
+# build and nothing reaches the registry. Publishing the image to GHCR is the deployment
+# step: the artefact that leaves the pipeline, tagged by branch and by commit.
+#
+# A pull request runs the same checks, builds the image and verifies it starts, but
+# publishes nothing: only a push to `dev` or `main` reaches the registry.
 #
 # No secret is needed anywhere: publishing to GHCR authenticates with the GITHUB_TOKEN
 # that GitHub mints for each run.
 on:
   push:
-    branches: [dev]
+    branches: [dev, main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -38,13 +41,21 @@ jobs:
             app/requirements.txt
 
       # Both requirements files are pinned, scikit-learn included: a pickle does not
-      # reload reliably under a version other than the one that wrote it. Neither
-      # MLflow, matplotlib nor Jupyter is installed — the test suite needs none of them.
+      # reload reliably under a version other than the one that wrote it. MLflow is
+      # added because the suite checks the tracking schema; neither matplotlib nor
+      # Jupyter is installed — no test needs them.
       - name: Installer les dépendances
         run: |
           python -m pip install --upgrade pip
-          pip install -r api/requirements.txt -r app/requirements.txt pytest httpx
+          pip install -r api/requirements.txt -r app/requirements.txt \
+            pytest httpx ruff "mlflow==3.16.1"
 
+      # Lint first: a dead import or a broken rename fails in seconds, before the suite.
+      - name: Lint
+        run: ruff check .
+
+      # The raw data is not versioned: the few tests that read the rebuilt FAO dataset
+      # skip themselves here; everything else runs on generated frames.
       - name: Tests
         run: pytest -q
 
@@ -83,24 +94,27 @@ jobs:
           exit 1
 
       - name: Se connecter à GHCR
+        if: github.event_name != 'pull_request'
         run: echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-      # Two tags: `dev` for the branch's latest image, and the short SHA to tie an
+      # Two tags: the branch name for its latest image, and the short SHA to tie an
       # image back to the commit it was built from.
       - name: Publier l'image
+        if: github.event_name != 'pull_request'
         run: |
           IMAGE="${{ steps.nom.outputs.image }}"
           SHA="${GITHUB_SHA::7}"
-          docker tag api:ci "$IMAGE:dev"
+          docker tag api:ci "$IMAGE:$GITHUB_REF_NAME"
           docker tag api:ci "$IMAGE:sha-$SHA"
-          docker push "$IMAGE:dev"
+          docker push "$IMAGE:$GITHUB_REF_NAME"
           docker push "$IMAGE:sha-$SHA"
-          echo "publié : $IMAGE:dev et $IMAGE:sha-$SHA"
+          echo "publié : $IMAGE:$GITHUB_REF_NAME et $IMAGE:sha-$SHA"
 
   alerte:
     name: Alerte en cas d'échec
     needs: [tests, image]
-    if: ${{ failure() }}
+    # A failing pull request already shows red on the pull request itself.
+    if: ${{ failure() && github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -110,7 +124,7 @@ jobs:
       - uses: actions/github-script@v7
         with:
           script: |
-            const titre = "La CI échoue sur dev";
+            const titre = `La CI échoue sur ${context.ref.replace("refs/heads/", "")}`;
             const lien = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}` +
                          `/actions/runs/${context.runId}`;
             const corps = `Le run [#${context.runNumber}](${lien}) a échoué sur le commit ` +

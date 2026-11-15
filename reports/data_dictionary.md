@@ -22,6 +22,4 @@ Genere par `src/data/build_dataset.py`. Origine : **A** = Agriculture CropYield,
 | `crop_temp_niche` | float64 | degC | B | Temperature mediane ANNUELLE des pays-annees cultivant l'espece (niche thermique) |
 | `crop_rain_pctl` | float64 | percentile | B | Pluie mediane de la culture, en percentile de la distribution de B (jamais en mm) |
 | `crop_ref_source` | category | - | derivee | 'FAO' ou 'imputed' (orge, coton) |
-| `temp_dev_from_niche` | float64 | degC | derivee | abs(Temperature_Celsius - crop_temp_niche) ; croise A et B, mais soustrait une
-      temperature de saison culturale a une moyenne annuelle : heuristique, pas un
-      ecart agronomique mesure |
+| `temp_dev_from_niche` | float64 | degC | derivee | abs(Temperature_Celsius - crop_temp_niche) ; croise A et B, mais soustrait une temperature de saison culturale a une moyenne annuelle : heuristique, pas un ecart agronomique mesure |

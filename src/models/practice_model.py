@@ -286,7 +286,7 @@ def main() -> None:
     log(result)
     size_mb = config.PRACTICE_MODEL_PATH.stat().st_size / 1024
     print(f"\necrit {config.PRACTICE_MODEL_PATH.relative_to(config.ROOT)} ({size_mb:.1f} Ko)")
-    print(f"ecrit models/practice_model_metadata.json")
+    print("ecrit models/practice_model_metadata.json")
 
 
 if __name__ == "__main__":

@@ -153,7 +153,7 @@ def test_the_root_requirements_declare_both_halves():
     interface alone and the embedded API would fail on `import uvicorn`, on the host and
     nowhere else.
     """
-    rows = {l.strip() for l in (ROOT / "requirements.txt").read_text().splitlines()}
+    rows = {line.strip() for line in (ROOT / "requirements.txt").read_text().splitlines()}
     assert "-r app/requirements.txt" in rows
     assert "-r api/requirements.txt" in rows
 

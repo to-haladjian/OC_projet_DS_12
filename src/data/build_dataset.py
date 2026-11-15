@@ -35,8 +35,9 @@ from src.data.crop_mapping import (
     SOURCE_FAO,
     SOURCE_IMPUTED,
 )
-from src.data.preparation import load as load_simulated, clean
 from src.data.prep_log import PrepLog
+from src.data.preparation import clean
+from src.data.preparation import load as load_simulated
 
 #: Agronomic profile columns added to each plot.
 PROFILE_COLUMNS = [
@@ -223,7 +224,9 @@ DICTIONARY: list[tuple[str, str, str, str, str]] = [
      "Pluie mediane de la culture, en percentile de la distribution de B (jamais en mm)"),
     ("crop_ref_source", "category", "-", "derivee", "'FAO' ou 'imputed' (orge, coton)"),
     ("temp_dev_from_niche", "float64", "degC", "derivee",
-     "abs(Temperature_Celsius - crop_temp_niche) ; croise A et B, mais soustrait une\n      temperature de saison culturale a une moyenne annuelle : heuristique, pas un\n      ecart agronomique mesure"),
+     "abs(Temperature_Celsius - crop_temp_niche) ; croise A et B, mais soustrait une "
+     "temperature de saison culturale a une moyenne annuelle : heuristique, pas un "
+     "ecart agronomique mesure"),
 ]
 
 

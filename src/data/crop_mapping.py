@@ -3,7 +3,7 @@
 Dataset A (``Agriculture Crop Yield``) and dataset B (``Crop Yield Prediction``)
 name their crops differently and do not cover the same species. This module is
 the single place where that reconciliation is declared, so the notebook, the
-training pipeline and the serving API all agree on the vocabulary. 
+training pipeline and the serving API all agree on the vocabulary.
 
 Only 4 of the 6 crops in dataset A exist in dataset B. Barley and Cotton have no
 FAO counterpart, so their enrichment is imputed from a documented donor crop and

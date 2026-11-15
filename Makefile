@@ -9,7 +9,7 @@ export MLFLOW_DISABLE_AGENT_HINT := 1
 .DEFAULT_GOAL := help
 .PHONY: help install data data-fao data-consolidated data-prices \
         train train-practice train-yield assets \
-        select-yield compare notebooks check-notebooks test all mlflow-ui api app up down
+        select-yield compare notebooks check-notebooks test lint all mlflow-ui api app up down
 
 help:  ## List the targets
 	@grep -E '^[a-z][a-z-]*:.*## ' $(MAKEFILE_LIST) | \
@@ -67,7 +67,10 @@ check-notebooks:  ## Check that every notebook compiles, ran, and raised no erro
 test:  ## Run the test suite
 	$(PY) -m pytest -q
 
-all: data train test  ## From the raw data to tested models
+lint:  ## Check the code with ruff
+	$(PY) -m ruff check .
+
+all: data train lint test  ## From the raw data to linted, tested models
 
 # ---------------------------------------------------------------------------
 # Experiment tracking, serving
