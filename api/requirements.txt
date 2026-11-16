@@ -1,6 +1,6 @@
-# API dependencies only (step 3) — no MLflow, no plotting, no Jupyter.
-# Versions are pinned on the training environment: the models are pickles, and
-# scikit-learn in particular must match the version they were trained with (1.9.0).
+# API dependencies only — no MLflow, no plotting, no Jupyter.
+# Versions are pinned on the training environment: the model is a pickle, and
+# scikit-learn in particular must match the version it was trained with (1.9.0).
 fastapi==0.142.2
 uvicorn==0.54.0
 pydantic==2.13.5

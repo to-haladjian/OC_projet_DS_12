@@ -1,4 +1,4 @@
-"""Derived `/recommend` variables: geography and past conditions.
+"""Derived variables of the yield model: geography and past conditions.
 
 All functions are **row-wise or per-country** transformations: they learn nothing
 and never look at the target. They can therefore be applied before the split without

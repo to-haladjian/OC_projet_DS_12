@@ -1,5 +1,5 @@
 {
-  "service": "recommend",
+  "role": "yield",
   "model": "ExtraTreesRegressor",
   "n_estimators": 150,
   "settings": {
@@ -52,7 +52,7 @@
     "cv_r2_mean": 0.9704593200312264,
     "cv_r2_std": 0.004334068158888056,
     "cv_nrmse_mean": 0.1856925873806195,
-    "fit_seconds": 2.3146244525909423
+    "fit_seconds": 2.7338013648986816
   },
   "cv_leave_country_out": {
     "cv_rmse_mean": 4.063393413375495,
@@ -62,7 +62,7 @@
     "cv_r2_mean": 0.7200637254678867,
     "cv_r2_std": 0.050873164371024966,
     "cv_nrmse_mean": 0.5830572328262535,
-    "fit_seconds": 2.0200353145599363
+    "fit_seconds": 2.385473680496216
   },
   "ranking_quality": {
     "raw": {
@@ -130,8 +130,8 @@
     "Soybean": "Soybeans"
   },
   "excluded_crops": {
-    "Barley": "absente du jeu FAO : son classement copierait celui de sa culture donneuse",
-    "Cotton": "absente du jeu FAO : son classement copierait celui de sa culture donneuse"
+    "Barley": "absente des données FAO, son rendement ne peut être ni estimé ni classé",
+    "Cotton": "absente des données FAO, son rendement ne peut être ni estimé ni classé"
   },
   "prices": {
     "source": "https://bulks-faostat.fao.org/production/Prices_E_All_Data_(Normalized).zip",

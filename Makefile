@@ -9,7 +9,7 @@ export MLFLOW_DISABLE_AGENT_HINT := 1
 .DEFAULT_GOAL := help
 .PHONY: help install data data-fao data-consolidated data-prices \
         train train-practice train-yield assets \
-        select-yield compare notebooks check-notebooks test lint all mlflow-ui api app up down
+        select-yield compare report notebooks check-notebooks test lint all mlflow-ui api app up down
 
 help:  ## List the targets
 	@grep -E '^[a-z][a-z-]*:.*## ' $(MAKEFILE_LIST) | \
@@ -17,7 +17,7 @@ help:  ## List the targets
 
 install:  ## Create the virtual environment and install every extra
 	uv venv
-	uv pip install -e ".[notebook,api,app,dev]"
+	uv pip install -e ".[notebook,api,app,dev,report]"
 
 # ---------------------------------------------------------------------------
 # Data
@@ -78,6 +78,9 @@ all: data train lint test  ## From the raw data to linted, tested models
 
 compare:  ## Print every tracked run on the shared metrics, and write the CSV
 	$(PY) -m src.tracking
+
+report:  ## Build the business report PDF (after `make compare`)
+	$(PY) scripts/build_report.py
 
 mlflow-ui:  ## Browse the tracked runs on http://127.0.0.1:5000
 	$(PY) -m mlflow ui --backend-store-uri sqlite:///mlflow.db

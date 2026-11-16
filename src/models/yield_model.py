@@ -1,8 +1,8 @@
-"""`/recommend` model: ranking of crops by expected yield.
+"""Yield model: expected yield of a crop in a country, and the ranking it gives.
 
-This is where the step 2 modelling work lives. Unlike `/predict`, this service relies
-on a dataset where **the crop actually predicts yield**: the FAO dataset rebuilt in
-step 1.
+The one model the API serves, for `/predict` (one crop) and `/recommend` (all crops,
+ranked). It learns from the only dataset where **the crop actually predicts yield**:
+the FAO dataset rebuilt by `src.data.crop_yield_prediction`.
 
 Three design choices shape this module.
 
@@ -19,7 +19,7 @@ Three design choices shape this module.
    available (`src.data.prices`), the **gross product in USD/ha** is added: it answers
    the brief's economic question, within the limits stated in that module.
 
-Runnable as a script to retrain and save the served model.
+Runnable as a script to retrain, save and track the served model (`make train-yield`).
 """
 
 from __future__ import annotations
@@ -52,7 +52,7 @@ def load() -> pd.DataFrame:
 
     Rows without history — the first year of each country — and those with a missing
     variable fall out of scope: a model cannot learn from an incomplete row, and there
-    is nothing to impute (see step 1).
+    is nothing to impute (see notebook 04).
     """
     raw = pd.read_csv(config.CROP_YIELD_PREDICTION_CSV)
     prepare = history.prepare(raw)
@@ -410,7 +410,7 @@ def save(result: Result, df: pd.DataFrame) -> None:
         pickle.dump(result.model, f)
 
     metadata = {
-        "service": "recommend",
+        "role": "yield",
         "model": "ExtraTreesRegressor",
         "n_estimators": result.model.named_steps["model"].n_estimators,
         "settings": SETTINGS,
@@ -483,7 +483,8 @@ def log(result: Result) -> str:
         ),
         {
             **result.cv, **result.scores,
-            **{f"country_{name}": value for name, value in result.country_cv.items()},
+            # Prefixed so that they sort after the shared `cv_*` metrics in the MLflow tables.
+            **{f"unseen_country_{name}": value for name, value in result.country_cv.items()},
             **mlflow_metrics(result.ranking),
             "model_size_mb": compressed_size(result.model),
         },
@@ -491,7 +492,7 @@ def log(result: Result) -> str:
         note=(
             "Modèle servi par l'API pour /predict et /recommend. Validation temporelle "
             "(prédire une année à partir des précédentes), puis test unique sur "
-            f"{config.TEST_YEAR}. Les métriques country_* mesurent la même chose sur des pays "
+            f"{config.TEST_YEAR}. Les métriques unseen_country_* mesurent la même chose sur des pays "
             "jamais vus : l'écart avec la validation temporelle est la part de la "
             "performance qui vient de la connaissance du pays."
         ),

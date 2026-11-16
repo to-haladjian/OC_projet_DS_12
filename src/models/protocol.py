@@ -1,13 +1,14 @@
 """Evaluation splits, and the checks that make them reliable.
 
-Two protocols, because the two datasets do not have the same structure.
+Three protocols, because the two datasets do not have the same structure.
 
-* **Simulated dataset** (`/predict`): no time dimension, rows are interchangeable.
+* **Simulated dataset** (practice effects): no time dimension, rows are interchangeable.
   A random split and `KFold` validation are suitable.
-* **Historical dataset** (`/recommend`): the yield of a country x crop pair is
+* **Historical dataset** (yield model): the yield of a country x crop pair is
   correlated at **0.985** with that of the previous year. A random split would put
   near-identical rows on both sides, and overestimate performance by a factor close
-  to 5. So we must train on the past and predict the following year.
+  to 5. So we must train on the past and predict the following year. A third
+  protocol, leave-country-out, measures what is left for a country never seen.
 
 Each function checks its result: it is the only way for a leak not to go unnoticed.
 """

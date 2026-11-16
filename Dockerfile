@@ -1,4 +1,4 @@
-# Agritech Answers API (step 3).
+# Agritech Answers API.
 # Build from the repository root:  docker build -t agritech-api .
 # Run:                             docker run -p 8000:8000 agritech-api
 

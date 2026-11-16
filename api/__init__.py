@@ -1,3 +1,3 @@
-"""Agritech Answers API: serves the `/predict` and `/recommend` models (step 3)."""
+"""Agritech Answers API: one yield model behind `/predict` and `/recommend`."""
 
 __version__ = "0.1.0"

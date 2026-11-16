@@ -306,12 +306,12 @@ def training_domain(
 ) -> pd.DataFrame:
     """Usual bounds of each variable, crop by crop.
 
-    The 5 % and 95 % quantiles describe the central 90 % observed. The step 3 API
+    The 5 % and 95 % quantiles describe the central 90 % observed. The API
     will use them to flag an unusual input **without rejecting it**: falling outside
     these bounds is not an error, it is a zone where the model learned little.
 
     `test_year` is excluded from the computation: the year held out for the final
-    `/recommend` test must not influence any upstream decision, interface bounds
+    test of the yield model must not influence any upstream decision, interface bounds
     included.
     """
     test_year = config.TEST_YEAR if test_year is None else test_year

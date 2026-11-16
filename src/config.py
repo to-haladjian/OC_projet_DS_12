@@ -1,7 +1,7 @@
 """Project paths and shared constants.
 
 A single place declares where the data lives, so that the notebooks, the training
-pipeline (step 2) and the API (step 3) never redefine a path.
+pipeline and the API never redefine a path.
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ SOURCE_PESTICIDES = CROP_YIELD_PREDICTION / "pesticides.csv"
 SOURCE_PREMERGED = CROP_YIELD_PREDICTION / "yield_df.csv"
 
 #: Source C, outside the brief: FAOSTAT producer prices (domain "Prices", bulk download,
-#: free). It only feeds the economic reading of the `/recommend` ranking; no model
+#: free). It only feeds the economic reading of the crop ranking; no model
 #: learns from it.
 SOURCE_PRICES = RAW_DATA / "FAOSTAT Prices" / "Prices_E_All_Data_(Normalized).zip"
 SOURCE_PRICES_URL = (
@@ -53,7 +53,7 @@ CONSOLIDATED_DATASET_CSV = PROCESSED_DATA / "crop_dataset_consolidated.csv"
 CONSOLIDATED_DATASET_GZ = PROCESSED_DATA / "crop_dataset_consolidated.csv.gz"
 DATA_DICTIONARY = REPORTS / "data_dictionary.md"
 
-#: Bounds of the training domain, per crop and per variable. The step 3 API
+#: Bounds of the training domain, per crop and per variable. The API
 #: uses them to flag an unusual input without rejecting it.
 TRAINING_DOMAIN_CSV = PROCESSED_DATA / "training_domain.csv"
 
@@ -72,7 +72,7 @@ MODELS_DIR = ROOT / "models"
 PRACTICE_MODEL_PATH = MODELS_DIR / "practice_model.joblib"
 YIELD_MODEL_PATH = MODELS_DIR / "yield_model.joblib"
 
-#: Last year of the historical dataset, held out for the final `/recommend` test (step 2).
+#: Last year of the historical dataset, held out for the final test of the yield model.
 #: The training domain bounds are computed excluding it, so that no information
 #: from the test year leaks upstream.
 TEST_YEAR = 2013

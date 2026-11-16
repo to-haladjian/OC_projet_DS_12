@@ -1,4 +1,4 @@
-"""Build of the consolidated dataset (step 1).
+"""Build of the consolidated dataset.
 
 The two datasets share **no row-level join key**: Agriculture CropYield has
 neither country nor year, CropYield Prediction has neither soil nor irrigation.
@@ -12,9 +12,9 @@ crops reaches a factor of 13 while it is null in the simulated dataset.
 **Known limitation.** The target of the consolidated dataset remains the yield of
 the simulated dataset, which carries no crop effect. Since `crop_ref_yield_t_ha` is
 collinear with `Crop`, a model trained on this target will learn to ignore it. The
-`/recommend` ranking must therefore rely explicitly on `crop_ref_yield_t_ha` as a
-documented post-processing step, rather than expect the model to infer the crop
-order. See notebook 05.
+crop ranking therefore cannot come from this target: it is served by a model trained
+on the rebuilt CropYield Prediction dataset itself (`src.models.yield_model`). See
+notebook 05.
 
 Runnable as a script to regenerate the consolidated CSV.
 """
@@ -129,7 +129,7 @@ def merge_sources(df_a: pd.DataFrame, profiles: pd.DataFrame) -> tuple[pd.DataFr
     `temp_dev_from_niche` is the only variable that truly crosses both sources row
     by row: the gap between the plot temperature and the crop's thermal niche.
 
-    **Two reasons to distrust it**, both established in step 1.
+    **Two reasons to distrust it**, both established in notebook 05.
 
     1. CropYield Prediction alone does not validate it: within that dataset the gap
        correlates *positively* with yield, through the country wealth bias.
@@ -142,8 +142,8 @@ def merge_sources(df_a: pd.DataFrame, profiles: pd.DataFrame) -> tuple[pd.DataFr
        **growing season**, like its rainfall; the FAO figure is a calendar-year mean.
 
     So this variable subtracts a growing-season temperature from an annual one. It is
-    kept because it carries the agronomic intent `/recommend` needs, but it is a
-    heuristic, not a measured agronomic gap. Step 2 must earn its place or drop it.
+    kept as documentation of the agronomic intent, but it is a heuristic, not a
+    measured agronomic gap: the ablation of notebook 07 shows it adds nothing.
     """
     prep_log = PrepLog()
     profile_without_donor = profiles.drop(columns=["donor_item"])
@@ -231,7 +231,7 @@ DICTIONARY: list[tuple[str, str, str, str, str]] = [
 
 
 def write_dictionary(path=None) -> None:
-    """Write the column reference, basis of the step 3 Pydantic schemas."""
+    """Write the column reference of the consolidated dataset."""
     path = path or config.DATA_DICTIONARY
     rows = [
         "# Dictionnaire des donnees — `crop_dataset_consolidated.csv`",

@@ -1,7 +1,7 @@
-"""Feature sets of the two services, declared once.
+"""Feature sets of the two models, declared once.
 
-This module is the single reference: the step 2 notebooks and the step 3 API draw
-the same lists from it. Do not redefine a feature set elsewhere.
+This module is the single reference: the notebooks, the training scripts and the API
+draw the same lists from it. Do not redefine a feature set elsewhere.
 
 It also holds the **dry matter table**, which makes yields comparable across crops
 (see :data:`DRY_MATTER`).
@@ -10,12 +10,12 @@ It also holds the **dry matter table**, which makes yields comparable across cro
 from __future__ import annotations
 
 # --------------------------------------------------------------------------- #
-# /predict — simulated dataset
+# Practice-effects model — simulated dataset
 # --------------------------------------------------------------------------- #
 
 PRACTICE_TARGET = "Yield_tons_per_hectare"
 
-#: The 4 variables carrying the signal, established in step 1 and confirmed by the
+#: The 4 variables carrying the signal, established by the exploration and confirmed by the
 #: ablation of notebook 07. They are also the 4 the interface will ask for.
 PRACTICE_SELECTED = [
     "Rainfall_mm",
@@ -51,7 +51,7 @@ PRACTICE_FEATURE_SETS = {
 }
 
 # --------------------------------------------------------------------------- #
-# /recommend — historical dataset
+# Yield model — historical dataset
 # --------------------------------------------------------------------------- #
 
 YIELD_TARGET = "yield_t_ha"

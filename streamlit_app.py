@@ -7,7 +7,7 @@ and the API started inside the process (see `app/embedded_api.py`) would die on
 `import uvicorn`. Pointing the host at a root entrypoint makes the root
 `requirements.txt`, which declares both halves, the file it reads.
 
-`app/requirements.txt` therefore stays what step 4 says it is: the interface's own
+`app/requirements.txt` therefore stays what it claims to be: the interface's own
 dependencies, with no model and no scikit-learn, which is what `app/Dockerfile` installs.
 
 Everything else runs the interface unchanged: `app/` goes on the path, because `app.py`

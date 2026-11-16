@@ -1,6 +1,6 @@
 """Check that the notebooks are valid **and actually executed**.
 
-This script exists because of a mistake made during step 2: a notebook whose
+This script exists because of a mistake made while modelling: a notebook whose
 execution had failed on a syntax error was declared "error-free", because the
 check only counted outputs of type `error`. But a notebook that never ran has
 no output at all — hence no error. The absence of errors proves nothing unless

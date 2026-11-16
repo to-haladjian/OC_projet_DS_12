@@ -1,4 +1,4 @@
-# Agritech Answers interface (step 4).
+# Agritech Answers interface.
 # Build from the repository root:  docker build -f app/Dockerfile -t agritech-app .
 # Usually started with the API by:  docker compose up
 

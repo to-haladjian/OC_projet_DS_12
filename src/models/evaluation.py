@@ -1,4 +1,4 @@
-"""Metrics and comparisons, shared by both services.
+"""Metrics and comparisons, shared by both models.
 
 RMSE and R² are the main metrics; MAE complements them by giving the error directly
 in t/ha.

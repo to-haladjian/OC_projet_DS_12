@@ -64,7 +64,7 @@ def clean(df: pd.DataFrame) -> tuple[pd.DataFrame, PrepLog]:
       neither fertilizer nor irrigation and almost all get under 200 mm of rain, which
       confirms the artificial floor. They make up 0.023 % of the data.
     * **`Days_to_Harvest` kept**, despite a null correlation with yield
-      (r = -0.004). Dropping a variable belongs to modelling (step 2), not to
+      (r = -0.004). Dropping a variable belongs to modelling, not to
       preparation, and the brief warns against unjustified removals.
     """
     prep_log = PrepLog()
@@ -88,7 +88,7 @@ def clean(df: pd.DataFrame) -> tuple[pd.DataFrame, PrepLog]:
         "physiquement impossibles",
     )
 
-    prep_log.add("variables conservees", "Days_to_Harvest gardee (choix differe a l'etape 2)")
+    prep_log.add("variables conservees", "Days_to_Harvest gardee (choix differe a la modelisation)")
     prep_log.add("valeurs manquantes", f"{int(out.isna().sum().sum())} au total")
     prep_log.add("lignes", f"{n_start:,} -> {len(out):,}")
     return out, prep_log
