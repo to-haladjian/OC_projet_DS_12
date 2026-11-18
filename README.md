@@ -61,9 +61,7 @@ Chaque phase est une cible `make` ; les agrégats les enchaînent dans l'ordre.
 | `make compare` | affiche tous les runs sur les métriques communes, écrit `reports/model_comparison.csv` |
 | `make mlflow-ui` | ouvre le journal d'expérimentations sur http://127.0.0.1:5000 |
 | `make notebooks` | ré-exécute les dix notebooks (long) |
-| `make check-notebooks` | vérifie que chaque notebook compile, a été exécuté, sans erreur |
 | `make lint` / `make test` | `ruff` / `pytest` |
-| `make report` | génère `reports/rapport_metier.pdf` |
 | `make api` / `make app` / `make up` | l'API, l'interface, ou les deux en conteneurs |
 | **`make all`** | `data` → `train` → `lint` → `test` |
 
@@ -339,7 +337,6 @@ models/            modèles, métadonnées et fichiers de service de l'API
 api/               API FastAPI et ses dépendances
 app/               interface Streamlit, son client HTTP et son Dockerfile
 tests/             tests des données, des modèles, de l'API et de l'interface
-scripts/           vérification des notebooks, génération du rapport
 Makefile           toutes les commandes du projet
 streamlit_app.py   point d'entrée pour Streamlit Cloud (exécute app/app.py)
 requirements.txt   dépendances à la racine, pour Streamlit Cloud (renvoie vers api/ et app/)

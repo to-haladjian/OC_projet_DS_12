@@ -14,6 +14,12 @@ TO_DELETE/
 # Énoncé de la mission, archivé depuis la plateforme : support de cours, pas un livrable.
 *.mhtml
 
+# Zip des livrables, regenere par `make deliverables`.
+livrables/
+
+# Outils locaux (verification des notebooks, rapport PDF, zip des livrables) : non versionnes.
+scripts/
+
 # Python
 .venv/
 venv/
