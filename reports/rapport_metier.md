@@ -56,9 +56,8 @@ données historiques montrent à l'inverse un écart de 1 à 13 entre cultures.
    dataset obtenu (un million de parcelles, chacune portant le profil mondial de sa culture)
    a surtout servi à trancher : il a prouvé que le rendement simulé ne dépend pas de la
    culture, et donc qu'il fallait apprendre le rendement par culture sur les données réelles.
-3. **Nous avons ajouté une source de prix.** Le sujet demande la culture la plus rentable,
-   et aucun des deux jeux ne contient de prix. Nous utilisons les prix payés aux producteurs
-   publiés par la FAO, gratuits et officiels.
+3. **Nous avons ajouté une source de prix.** Il nous est demandé la culture la plus rentable,
+   et aucun des deux jeux ne contient de prix. Nous utilisons les prix payés aux producteurs publiés par la FAO, gratuits et officiels.
 
 ## 3. Les variables clés, expliquées
 
@@ -114,7 +113,7 @@ Cinq familles de modèles ont été évaluées dans les mêmes conditions, de de
 
 ![Erreur de chaque famille de modèles, sous les deux évaluations](figures/rapport_comparaison_familles.png){: width="500" }
 
-Le modèle retenu, une forêt d'« arbres extrêmement aléatoires », est le meilleur sur chacune
+Le modèle retenu, un ExtraTreesRegressor, est le meilleur sur chacune
 des cinq années de validation. Nous aurions préféré un modèle plus léger, plus simple à
 héberger : les mesures ne le permettent pas.
 
@@ -195,8 +194,7 @@ environ 2 280 USD/ha), mais le riz passe devant le blé en valeur alors qu'il re
 ### Les pratiques : deux leviers à la main de l'exploitant
 
 Sur les parcelles simulées, **fertiliser ajoute 1,50 t/ha et irriguer 1,20 t/ha**, soit
-environ un tiers et un quart du rendement moyen. Les données réelles vont dans le même sens
-pour les intrants. Ce sont les deux décisions que l'agriculteur prend lui-même : l'outil les
+environ un tiers et un quart du rendement moyen. Les données réelles vont dans le même sens. Ce sont les deux décisions que l'agriculteur prend lui-même : l'outil les
 affiche à côté de chaque estimation, à titre indicatif.
 
 ### Comment lire une recommandation
